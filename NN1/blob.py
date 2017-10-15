@@ -21,9 +21,8 @@ class Blob(ParentSprite):
             nn (class): can pass in the neural net from another blob
         """
         super(Blob, self).__init__() # values are not needed
-        #self.center_x, self.center_y = SCREEN_SIZE[0] / 2 + 40, SCREEN_SIZE[1] / 2 + 10
         self.int_center = int(self.center_x), int(self.center_y)
-        self.radius = 10.0
+        self.radius = 15.0
         self.angle = random.uniform(0,2*np.pi)
         self.energy = MAX_ENERGY
         self.alive = True
@@ -46,10 +45,11 @@ class Blob(ParentSprite):
         self.eye_position = np.pi / 7 # angle from direction they're facing
         self.eye_peripheral_width = np.pi / 4 # angle from center of eye's vision to edge of peripheral
         self.max_visable_distance = 8 * self.radius # how far the eye can see
-        self.left_eye_input  = {'r':0.0, 'g':0.0, 'b':0.0, 'p':0.0} # red, green, blue, proximity
-        self.right_eye_input = {'r':0.0, 'g':0.0, 'b':0.0, 'p':0.0} # red, green, blue, proximity   
-        self.left_eye_points_seen  = [] # list of points analyzed by the left eye 
-        self.right_eye_points_seen = [] # list of points analyzed by the right eye
+        self.eye_data = {'left_eye':{'pos':[0,0], 'left_peripheral': [0,0], 'right_peripheral': [0,0]}, 
+                        'right_eye':{'pos':[0,0], 'left_peripheral': [0,0], 'right_peripheral': [0,0]}}
+        self.visual_input = {'left_eye':[0.0, 0.0, 0.0],  # left eye:  red, green, blue
+                            'right_eye':[0.0, 0.0, 0.0]}  # right eye: red, green, blue   
+        self.left_arcs, self.right_arcs = [], [] # list of arcs of what the blob sees
 
         ######################
 
@@ -87,22 +87,31 @@ class Blob(ParentSprite):
             self.angle = -self.angle % (2 * np.pi)
 
     # this is the old way of inputting sight, its causes the program to run very slowly
-    def update_input(self, view):
+    def update_input(self, model):
         
-        # general variable setup
+        self.update_sight(model)
+        #self.print_input()
+    def print_input(self):
+        print 'Eyes:\tLeft RGB: [%.3f, %.3f, %.3f] Right RGB: [%.3f, %.3f, %.3f]' \
+         % (self.visual_input['left_eye'][0], \
+            self.visual_input['left_eye'][1], \
+            self.visual_input['left_eye'][2], \
+            self.visual_input['right_eye'][0], \
+            self.visual_input['right_eye'][1], \
+            self.visual_input['right_eye'][2])
+        print 'Energy:\t%f' % self.energy
+        print ''
+
+    def old_update_sight(self):
+
+        # variable setup
         x, y, r, theta = self.center_x, self.center_y, self.radius, self.angle
-        
-
-        # EYES
-
-        # eye variable setup
         eye_sep = self.eye_position
         vis_dist = self.max_visable_distance
         periph_angle = self.eye_peripheral_width
         
         # reset input 
-        self.left_eye_input['r'],  self.left_eye_input['g'],  self.left_eye_input['b']  = 0.0, 0.0, 0.0
-        self.right_eye_input['r'], self.right_eye_input['g'], self.right_eye_input['b'] = 0.0, 0.0, 0.0
+        lr, lg, lb, rr, rg, rb = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         # LEFT EYE
         
@@ -129,15 +138,15 @@ class Blob(ParentSprite):
                 #print 'i = %d, angle = %f, px=%f, py=%f, pixel_color = %s' % (i, angle, px, py, pixel_color)
                 self.left_eye_points_seen.append((px,py))
                 if pixel_color != (0,0,0,255):
-                    self.left_eye_input['r'] += pixel_color[0]
-                    self.left_eye_input['g'] += pixel_color[1]
-                    self.left_eye_input['b'] += pixel_color[2]
+                    lr += pixel_color[0]
+                    lg += pixel_color[1]
+                    lb += pixel_color[2]
                     break
 
-        self.left_eye_input['r'] /= (num_angles * 255)
-        self.left_eye_input['g'] /= (num_angles * 255)
-        self.left_eye_input['b'] /= (num_angles * 255)
-
+        lr /= (255 * num_angles)
+        lg /= (255 * num_angles)
+        lb /= (255 * num_angles)
+        self.visual_input['left_eye'] = [lr, lg, lb]
         
         # RIGHT EYE
         right_eye_pos = (x + r * np.cos(theta + eye_sep), y + r * np.sin(theta + eye_sep))
@@ -161,14 +170,15 @@ class Blob(ParentSprite):
                 #print 'i = %d, angle = %f, px=%f, py=%f, pixel_color = %s' % (i, angle, px, py, pixel_color)
                 self.right_eye_points_seen.append((px,py))
                 if pixel_color != (0,0,0,255):
-                    self.right_eye_input['r'] += pixel_color[0]
-                    self.right_eye_input['g'] += pixel_color[1]
-                    self.right_eye_input['b'] += pixel_color[2]
+                    rr += pixel_color[0]
+                    rg += pixel_color[1]
+                    rb += pixel_color[2]
                     break
 
-        self.right_eye_input['r'] /= (num_angles * 255)
-        self.right_eye_input['g'] /= (num_angles * 255)
-        self.right_eye_input['b'] /= (num_angles * 255)
+        rr /= (255 * num_angles)
+        rg /= (255 * num_angles)
+        rb /= (255 * num_angles)
+        self.visual_input['right_eye'] = [rr, rg, rb]
         
 
         # draw points that were analyzed
@@ -179,8 +189,31 @@ class Blob(ParentSprite):
         #for pt in self.right_eye_points_seen:
         #   pygame.draw.circle(surface, [0,255,0], pt, 1)
 
-    # INCOMPLETE, this is the new way of inputting sight
+    # input sight
     def update_sight(self, model):
+
+
+        # LEFT EYE
+        # get left field of vision
+        self.update_eye_data('left_eye')
+
+        # get the arcs in the left field of view
+        self.left_arcs = self.update_visual_field(model.blobs + model.foods, 'left_eye')
+        
+        # get rgb for left eye
+        self.update_eye_rgb(self.left_arcs, 'left_eye')
+
+
+        # RIGHT EYE
+        # get left field of vision
+        self.update_eye_data('right_eye')
+
+        # get the arcs in the right field of view
+        self.right_arcs = self.update_visual_field(model.blobs + model.foods, 'right_eye')
+        
+        # get rgb for right eye
+        self.update_eye_rgb(self.right_arcs, 'right_eye')
+    def update_eye_data(self, eye):
 
         # general variable setup
         x, y, r, theta = self.center_x, self.center_y, self.radius, self.angle
@@ -190,79 +223,34 @@ class Blob(ParentSprite):
         vis_dist = self.max_visable_distance
         periph_angle = self.eye_peripheral_width
         
-        # reset input 
-        self.left_eye_input['r'],  self.left_eye_input['g'],  self.left_eye_input['b']  = 0.0, 0.0, 0.0
-        self.right_eye_input['r'], self.right_eye_input['g'], self.right_eye_input['b'] = 0.0, 0.0, 0.0
-
-        # LEFT EYE
-        
-        # get left field of vision
-        left_eye_pos = [x + r * np.cos(theta - eye_sep), y + r * np.sin(theta - eye_sep)]
-        self.left_eye_pos = (int(left_eye_pos[0]), int(left_eye_pos[1]))
-        far_outer_left_peripheral = (left_eye_pos[0] + vis_dist * np.cos(theta - eye_sep - periph_angle), \
-                                     left_eye_pos[1] + vis_dist * np.sin(theta - eye_sep - periph_angle))
-        far_inner_left_peripheral = (left_eye_pos[0] + vis_dist * np.cos(theta - eye_sep + periph_angle), \
-                                     left_eye_pos[1] + vis_dist * np.sin(theta - eye_sep + periph_angle))
-
-        circles_in_left_view = self.update_sight_helper(model.blobs + model.foods, \
-            left_eye_pos, far_outer_left_peripheral, far_inner_left_peripheral)
-
-        
-        # need to determine which objects are in front of which
-        # to create a list of arcs
-        '''
-        arcs = [{'lower_bound':lowest_bound, \
-                'upper_bound':highest_bound, \
-                'color':[255,255,255, 0.5], \
-                'dist':self.max_visable_distance}]
-        for c in circles_in_left_view:
-
-            # determine arc that each circle takes up in field of view
-
-            lower_bound = c['a'] - c['a2']
-            upper_bound = c['a'] + c['a2']
-            if lower_bound  < lowest_bound:  lower_bound = lowest_bound
-            if higher_bound > highest_bound: upper_bound = highest_bound
-
-            color = c['c'].color
-
-            # if arc overlaps with any prvious arc
-            # for each previous arc
-            start_arc, end_arc = None, None
-            for arc in arcs:
-
-                # if c starts in this arc
-                if arc['lower_bound'] <= lower_bound and lower_bound <= arc['upper_bound']: 
-
-                    # if c ends in this arc
-
-
-                    # else c ends beyond this arc
-
-                if lower_bound < prev['lower_bound'] and prev['lower_bound'] < upper_bound or \
-                   lower_bound < prev['lower_bound'] and prev['upper_bound'] < upper_bound or \
-                   prev['lower_bound'] < lower_bound and upper_bound < prev['upper_bound']:
-
-                
-                # 
-                # arc distance and overlap determines
-                # who get what of the overlap
-                # safe to assume things cannot overlab
-
-            prevs.append({'lower_bound':lower_bound, 'upper_bound':upper_bound, 'color', color})
-            '''
-        # RIGHT EYE
-    def update_sight_helper(self, circles, eye_pos, left_peripheral, right_peripheral):
-
-        # sign((Bx - Ax) * (y - Ay) - (By - Ay) * (x - Ax))
-        # + if (x,y) is to the left of line AB, from pt A's perspective,
-        # 0 if on the line, and - if to the right
+        if eye == 'left_eye': e = -1
+        else: e = 1 # right eye
+        eye_pos = [x + r * np.cos(theta + e*eye_sep), y + r * np.sin(theta +e*eye_sep)]
+        self.eye_data[eye]['pos'] = (eye_pos[0], eye_pos[1])
+        self.eye_data[eye]['left_peripheral'] = \
+            (eye_pos[0] + vis_dist * np.cos(theta + e*eye_sep - periph_angle), \
+             eye_pos[1] + vis_dist * np.sin(theta + e*eye_sep - periph_angle))
+        self.eye_data[eye]['right_peripheral'] = \
+            (eye_pos[0] + vis_dist * np.cos(theta + e*eye_sep + periph_angle), \
+             eye_pos[1] + vis_dist * np.sin(theta + e*eye_sep + periph_angle))
+    def update_visual_field(self, circles, eye):
 
         # find the outer edge points of the arc of c that is visable from eye_pos
         # point perpendicular to surface of circle that makes line with eye
+        
+        eye_pos = self.eye_data[eye]['pos']
+        left_peripheral = self.eye_data[eye]['left_peripheral'] 
+        right_peripheral = self.eye_data[eye]['right_peripheral']
 
-        # return whether the objects are in the specified eye's field of view
-        circles_in_view = []
+        vision_opaquness = 25 # how opaque the view draws the arcs of the vision (0 to 255)
+        arcs = [{ # start with just 1 empty field of vision
+        'left_side':left_peripheral, # left_side = the point on the 
+        'right_side':right_peripheral,
+        'd':self.max_visable_distance, # distance from eye to arc
+        'color':[255,255,255,vision_opaquness], # opaque white
+        'empty':True # if the arc represents empty space or a circle
+        }]
+
         for c in circles:
 
             if c == self: continue
@@ -284,14 +272,16 @@ class Blob(ParentSprite):
                 a = np.arctan2(dy,dx) # a = angle between horizontal line and line from eye_pos to c                    
                 a2 = np.arcsin(cr/d) # a2 = angle between line from eye_pos to c and line from eye_pos to p_left
                 d2 = np.sqrt(d**2 - cr**2) # d2 = distance from eye_pos to p_left
+                # if the circle c is just barely on the outside of the max_visable_distane
+                if d2 > self.max_visable_distance:
+                    d2 = self.max_visable_distance
+                    a2 = np.arccos((d2**2 + d**2 - cr**2)/(2*d2*d))
                 p_left = (ex + d2*np.cos(a-a2), ey + d2*np.sin(a-a2))
                 
                 # if p_left is on the left side of right periferal
-                if (right_peripheral[0] - ex) * (p_left[1] - ey) \
-                 - (right_peripheral[1] - ey) * (p_left[0] - ex) <= 0:
-                    # see the eq. at the top of this helper fn. for how this works
+                if self.left_side(eye_pos, right_peripheral, p_left):
 
-                    self.p_left  = (int(p_left[0]),  int(p_left[1])) # FOR TESTING PURPOSES 
+                    #self.p_left  = (int(p_left[0]),  int(p_left[1])) # FOR TESTING PURPOSES 
 
                     # p_right = the point on the edge of circle c that is
                     # forms a line tangent to c when connected to eye_pos.
@@ -299,17 +289,182 @@ class Blob(ParentSprite):
                     p_right = (ex + d2*np.cos(a+a2), ey + d2*np.sin(a+a2))
 
                     # if p_right is on the right side of left periferal
-                    if (left_peripheral[0] - ex) * (p_right[1] - ey) \
-                     - (left_peripheral[1] - ey) * (p_right[0] - ex) >= 0:
+                    if self.right_side(eye_pos, left_peripheral, p_right):
 
-                        self.p_right = (int(p_right[0]), int(p_right[1])) # FOR TESTING PURPOSES  
+                        col = [c.color[0], c.color[1], c.color[2], vision_opaquness]
+                        first_arc, last_arc = True, False # first and last arc in the iteration
+                        original_arcs = []
+                        for a in arcs: original_arcs.append(a)
+                        i = -1
+                        for a in original_arcs:
 
-                        circles_in_view.append({\
-                            'c':c, 'd':d, \
-                            'p_left':p_left, 'p_right':p_right, \
-                            'a':a, 'a2':a2, 'd2':d2})
+                            i += 1
+                            #print 'i=%d, len(arcs)=%d' % (i, len(arcs))
+                            if arcs[i]['color'] == col and arcs[i]['d'] == d2: i += 1
+                            if i > 0: first_arc = False
+                            if i == len(arcs)-1: last_arc = True
 
-        return circles_in_view
+                            a_left, a_right = a['left_side'], a['right_side']
+
+                            LPLL = self.left_side(eye_pos, a_left, p_left)
+                            LPRL = not LPLL
+                            LPLR = self.left_side(eye_pos, a_right, p_left)
+                            LPRR = not LPLR
+                            RPLL = self.left_side(eye_pos, a_left, p_right)
+                            RPRL = not RPLL
+                            RPLR = self.left_side(eye_pos, a_right, p_right)
+                            RPRR = not RPLR
+
+                            a_d = a['d']
+                            closer = d - cr < a_d
+
+                            if closer:
+                                #print '%s is closer than arc[%d]:%s' % (col, i, arcs[i]['color'])
+                                #print 'LPLL=%s, LPRL=%s, LPLR=%s, LPRR=%s, RPLL=%s, RPRL=%s, RPLR=%s, RPRR=%s' \
+                                #% (LPLL, LPRL, LPLR, LPRR, RPLL, RPRL, RPLR, RPRR)
+
+                                if LPLL and RPLL or LPRR and RPRR:
+                                    # senario where none of arc a is not overlapped by c
+                                    #print '%s none of arc[%d]:%s' % (col, i, arcs[i]['color'])
+                                    pass
+
+                                elif LPRL and LPLR and RPRR:
+                                    # senario where the right side of arc a is overlapped by c
+                                    #print '%s right of arc[%d]:%s' % (col, i, arcs[i]['color'])
+
+                                    # so move arc a's right side in
+                                    arcs[i]['right_side'] = p_left
+
+                                    # and insert it starting at the right side of arc a
+                                    arcs.insert(i+1, {
+                                        'left_side':p_left,
+                                        'right_side':a_right,
+                                        'd':d2,
+                                        'color':col,
+                                        'empty':False
+                                    })
+
+
+                                elif LPRL and LPLR and RPRL and RPLR:
+                                    # senario where the middle of arc a is overlapped by c
+                                    #print '%s middle of arc[%d]:%s' % (col, i, arcs[i]['color'])
+
+                                    # so put c in the middle
+                                    arcs[i]['right_side'] = p_left
+                                    arcs.insert(i+1, {
+                                        'left_side':p_left,
+                                        'right_side':p_right,
+                                        'd':d2,
+                                        'color':col,
+                                        'empty':False
+                                    })
+                                    arcs.insert(i+2, {
+                                        'left_side':p_right,
+                                        'right_side':a_right,
+                                        'd':a_d,
+                                        'color':arcs[i]['color'],
+                                        'empty':arcs[i]['empty']
+                                    })
+
+                                elif LPLL and RPRL and RPLR:
+                                    # senario where the left side of arc a is overlapped by c
+                                    #print '%s left of arc[%d]:%s' % (col, i, arcs[i]['color'])
+
+                                    # so move arc a's left side in
+                                    arcs[i]['left_side'] = p_right
+
+                                    # if arc a is not the first arc and 
+                                    # the previous arc is from the same circle
+                                    if not first_arc and \
+                                    arcs[i-1]['color'] == col and arcs[i-1]['d'] == d2:
+
+                                        # then this is a continuation of the previous arc
+                                        # so just update its right side
+                                        arcs[i-1]['right_side'] = p_right
+
+                                    # else, this is a new arc
+                                    else:
+
+                                        # so insert it starting at the left side of arc a
+                                        arcs.insert(i+1, {
+                                            'left_side':a_left,
+                                            'right_side':p_right,
+                                            'd':d2,
+                                            'color':col,
+                                            'empty':False
+                                        })
+
+
+                                elif LPLL and RPRR:
+                                    # senario where all of arc a is overlapped by c
+                                    #print '%s all of arc[%d]:%s' % (col, i, arcs[i]['color'])
+
+                                    # if arc a is not the first arc and 
+                                    # the previous arc is from the same circle
+                                    if not first_arc and \
+                                    arcs[i-1]['color'] == col and arcs[i-1]['d'] == d2:
+
+                                        # then this is a continuation of the previous arc
+                                        # so just update its right side
+                                        arcs[i-1]['right_side'] = a_right
+                                        
+                                        # and remove this arc
+                                        del arcs[i]
+                                        i -= 1
+
+                                    # else, this is a new arc
+                                    else:
+                                        arcs[i]['d'] = d2
+                                        arcs[i]['color'] = col
+                                        arcs[i]['empty'] = False
+
+
+        #for a in arcs: print a
+        #print ''
+        return arcs
+    def update_eye_rgb(self, arcs_in_view, eye):
+
+        x, y, r = self.center_x, self.center_y, self.radius
+        theta, eye_sep = self.angle, self.eye_position
+        if eye == 'left_eye':
+            ex, ey = x + r * np.cos(theta - eye_sep), y + r * np.sin(theta - eye_sep)
+        else:
+            ex, ey = x + r * np.cos(theta + eye_sep), y + r * np.sin(theta + eye_sep)
+
+        total_angle = 2 * self.eye_peripheral_width # all of visual field
+                    
+        r,g,b = 0.0,0.0,0.0
+        for a in arcs_in_view:
+
+            if not a['empty']:
+
+                left_angle  = np.arctan2(ey - a['left_side'][1],  ex - a['left_side'][0])
+                right_angle = np.arctan2(ey - a['right_side'][1], ex - a['right_side'][0])
+                if left_angle > 0 and right_angle < 0: right_angle += 2*np.pi
+                arc_angle = abs(left_angle - right_angle)
+
+                r += (a['color'][0] / 255) * (arc_angle / total_angle)
+                g += (a['color'][1] / 255) * (arc_angle / total_angle)
+                b += (a['color'][2] / 255) * (arc_angle / total_angle)
+
+        self.visual_input[eye] = [r,g,b]            
+
+    # determine if point C is on the left or right side
+    # of line AB from point A's perspective
+    def left_side(self, A, B, C):
+
+        # sign((Bx - Ax) * (y - Ay) - (By - Ay) * (x - Ax))
+        # + if (x,y) is to the left of line AB, from pt A's perspective,
+        # 0 if on the line, and - if to the right
+
+        return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]) <= 0
+    def right_side(self, A, B, C):
+
+        # sign((Bx - Ax) * (y - Ay) - (By - Ay) * (x - Ax))
+        # + if (x,y) is to the left of line AB, from pt A's perspective,
+        # 0 if on the line, and - if to the right
+
+        return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]) >= 0
 
 
     def update_transform(self):
@@ -442,15 +597,8 @@ class Blob(ParentSprite):
         energy_input = self.energy / 1000. #scale engery between 1 through 0
 
         #create array containing neural net inputs
-        env = np.array([
-                self.left_eye_input['r'], \
-                self.left_eye_input['g'], \
-                self.left_eye_input['b'], \
-                self.right_eye_input['r'], \
-                self.right_eye_input['g'], \
-                self.right_eye_input['b'], \
-                energy_input
-            ])
+        env = np.array(self.visual_input['left_eye'] + self.visual_input['right_eye'] + [energy_input])
+
         return self.nn.process(env)
 
     def get_things_within_sight(self, list_of_things):
@@ -533,7 +681,7 @@ class Blob(ParentSprite):
         """
 
         # update inputs (visual, audial, etc.)
-        self.update_sight(model)
+        self.update_input(model)
 
         # get current wheel rotations based on neural network
         [self.left_wheel_rotation, self.right_wheel_rotation] = self.process_neural_net()

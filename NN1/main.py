@@ -2,6 +2,7 @@ import pygame
 import random
 import time
 from pygame.locals import QUIT, KEYDOWN
+from pygame import gfxdraw
 from constants import *
 from food import *
 from blob import *
@@ -12,22 +13,30 @@ import os
 
     TO DO:
 
-        put on github
-
-        git clone ...
-
-
-        git add .
-        git commit -m "asdf"
-        git push -u origin master
-
-        if fails: "Upload Files" on website
-
         SHORT TERM (now):
 
-            see update sight helper
+            fix right eye
+                display just right eye
+
+            figure out that error that occationaly occurs
+            in processing the visual field
+
+            find places in vision where redundent calculations and code exist
 
             make it so blobs cannot overlap with eachother
+                currently the program crashes when this happens b/c vision
+                equations divide by 0 or something
+
+            make it so health/energy bar is visable when you hover mouse over blob
+            also have circle around mouse
+
+            make it so you can pause the game w/ spacebar
+
+            put all the blob and food variables that are constant in the constants.py file
+                delete all the places they're initialized in the init of the blob's and food
+                change all the names in the rest of the files
+
+        MEDIUM TERM (later):
 
             get it to the point where there are bots moving around
             they have sight
@@ -37,21 +46,14 @@ import os
                 comment out everything in the loop
                 print out stuff to console
 
-            make it so health/energy bar is visable when you hover mouse over blob
-            also have circle around mouse
-
-
-        MEDIUM TERM (later):
-
 
         LONG TERM (eventually):
-
 
     SOURCES:
 
         gen idea:
         https://www.youtube.com/watch?v=GvEywP8t12I
-        http://duncandhall.github.io/NaturalEvolution/implementation.html
+        http://duncandhall.github.io/NaturalEvolution/index.html
 
         intro to neural networks:
         http://www.theprojectspot.com/tutorial-post/introduction-to-artificial-neural-networks-part-1/7
@@ -59,8 +61,19 @@ import os
         useful for 2d graphics with pygame:
         https://www.pygame.org/docs/ref/draw.html
 
+    OTHER:
 
-    '''
+        how to properly push to github:
+
+            git add .
+            git commit -m "asdf"
+            git push -u origin master
+
+            if fails: "Upload Files" on website
+
+
+
+        '''
 
 
 class PyGameView(object):
@@ -120,7 +133,7 @@ class PyGameView(object):
                 food.color,
                 (food.center_x, food.center_y),
                 food.radius
-                )
+                )                    
 
         # draw blobs
         for blob in self.model.blobs:
@@ -139,45 +152,49 @@ class PyGameView(object):
                 #     blob.left_eye_pos, 2)
                 if model.draw_sight: # sight lines are toggleable
 
-                    x, y, r, theta = blob.center_x, blob.center_y, blob.radius, blob.angle
-                    eye_sep = blob.eye_position
-                    vis_dist = blob.max_visable_distance
-                    periph_angle = blob.eye_peripheral_width
-                    
-                    # get left field of vision
-                    left_eye_pos = [x + r * np.cos(theta - eye_sep), y + r * np.sin(theta - eye_sep)]
-                    far_outer_left_peripheral = (left_eye_pos[0] + vis_dist * np.cos(theta - eye_sep - periph_angle), \
-                                                 left_eye_pos[1] + vis_dist * np.sin(theta - eye_sep - periph_angle))
-                    far_inner_left_peripheral = (left_eye_pos[0] + vis_dist * np.cos(theta - eye_sep + periph_angle), \
-                                                 left_eye_pos[1] + vis_dist * np.sin(theta - eye_sep + periph_angle))
-
                     # draw left field of vision
-                    pygame.draw.line(self.screen, pygame.Color('white'), left_eye_pos, far_outer_left_peripheral)
-                    pygame.draw.line(self.screen, pygame.Color('white'), left_eye_pos, far_inner_left_peripheral)
-                    pygame.draw.arc(self.screen,  pygame.Color('white'), \
-                       [left_eye_pos[0] - vis_dist, left_eye_pos[1] - vis_dist, 2 * vis_dist, 2 * vis_dist], \
-                        -(theta - eye_sep + periph_angle), -(theta - eye_sep - periph_angle))
-            
-                    # get right field of vision
-                    right_eye_pos = (x + r * np.cos(theta + eye_sep), y + r * np.sin(theta + eye_sep))
-                    far_outer_right_peripheral = (right_eye_pos[0] + vis_dist * np.cos(theta + eye_sep - periph_angle), \
-                                                  right_eye_pos[1] + vis_dist * np.sin(theta + eye_sep - periph_angle))
-                    far_inner_right_peripheral = (right_eye_pos[0] + vis_dist * np.cos(theta + eye_sep + periph_angle), \
-                                                  right_eye_pos[1] + vis_dist * np.sin(theta + eye_sep + periph_angle))
+                    self.draw_visual_field(blob, 'left_eye')
 
                     # draw right field of vision
-                    #pygame.draw.line(self.screen, pygame.Color('white'), right_eye_pos, far_outer_right_peripheral)
-                    #pygame.draw.line(self.screen, pygame.Color('white'), right_eye_pos, far_inner_right_peripheral)
-                    #pygame.draw.arc(self.screen,  pygame.Color('white'), \
-                    #   [right_eye_pos[0] - vis_dist, right_eye_pos[1] - vis_dist, 2 * vis_dist, 2 * vis_dist], \
-                    #    -(theta + eye_sep + periph_angle), -(theta + eye_sep - periph_angle))
+                    self.draw_visual_field(blob, 'right_eye')
 
         pygame.display.update()
 
+    def draw_visual_field(self, blob, eye):
+        
+        ex, ey = blob.eye_data[eye]['pos'][0], blob.eye_data[eye]['pos'][1]
+        if eye == 'left_eye': e = -1
+        else: e = 1 # right eye
+        # pygame.gfxdraw.pie(self.screen, \
+        #     int(ex), int(ey), int(blob.max_visable_distance), \
+        #     int(180 * (theta + e*eye_sep - periph_angle) / np.pi), \
+        #     int(180 * (theta + e*eye_sep + periph_angle) / np.pi), \
+        #     pygame.Color('white'))
+        for a in blob.left_arcs:
+            d = a['d']
+            left_angle  = np.arctan2(ey - a['left_side'][1],  ex - a['left_side'][0])
+            right_angle = np.arctan2(ey - a['right_side'][1], ex - a['right_side'][0])
+            
+            #print 'left angle = %f\tright angle = %f' % (left_angle, right_angle)
+            if left_angle > 0 and right_angle < 0: right_angle += 2*np.pi
+            if a['empty']:
+                num_angs = 25 * (abs(right_angle - left_angle)) / (np.pi/2)
+                if num_angs < 2.0: num_angs = 2
+            else: num_angs = 2
+            angles = np.linspace(right_angle, left_angle, num_angs)
+            len_ang_list = len(angles)
+            points = [0.0] * len_ang_list
+            for i in range(len_ang_list):
+                points[i] = [ex - d*np.cos(angles[i]), ey - d*np.sin(angles[i])]
+                #px, py = int(points[i][0]), int(points[i][1])
+                #pygame.draw.circle(self.screen, pygame.Color('blue'), (px,py), 1)
+            points.append([ex,ey])
+            pygame.gfxdraw.filled_polygon(self.screen, points, a['color'])
+            
 
 
 class Model(object):
-    """ 
+    """
     Represents the state of all entities in the environment and drawing
     parameters
     """
@@ -203,6 +220,9 @@ class Model(object):
         self.foods = []
         for i in range(0, FOOD_NUM):
             self.foods.append(Food())
+        #self.foods.append(Food(330, 300, 10, pygame.Color('green')))
+        #self.foods.append(Food(300, 300, 10,  pygame.Color('red')))
+        #self.foods.append(Food(270, 300, 10,  pygame.Color('blue')))
 
         # create blobs
         self.blobs = []
