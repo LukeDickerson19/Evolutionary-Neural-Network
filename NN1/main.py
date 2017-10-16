@@ -21,12 +21,6 @@ import os
                 it says something like array index out of bounds
                 in the arc array for the visual field in the blob.py file
 
-            make it so blobs cannot overlap with eachother
-                currently the program crashes when this happens b/c vision
-                equations divide by 0 or something
-                make it so when their inital position is 
-                created if there is an overlap the position is recalculated
-
             currently theres nothing that limits how fast a blob can move
             i made a variable called max_wheel_angular_velocity in the blob init
             but nothing uses it yet
@@ -218,18 +212,18 @@ class Model(object):
         self.draw_sight = False #draw sight lines
         self.sleep_time = .005 #seconds between frames
 
+        self.foods, self.blobs = [], []
+
         # create foods
-        self.foods = []
         for i in range(0, FOOD_NUM):
-            self.foods.append(Food())
+            self.foods.append(Food(self))
         #self.foods.append(Food(330, 300, 10, pygame.Color('green')))
         #self.foods.append(Food(300, 300, 10,  pygame.Color('red')))
         #self.foods.append(Food(270, 300, 10,  pygame.Color('blue')))
 
         # create blobs
-        self.blobs = []
         for i in range(0, BLOB_NUM):
-            self.blobs.append(Blob())
+            self.blobs.append(Blob(self))
 
         # population progressions
         self.population = 0
@@ -261,7 +255,7 @@ class Model(object):
 
         for i in range(0, BLOB_NUM):
             new_NN = NN(parents_NN=top_scoring)
-            self.blobs.append(Blob(new_NN))
+            self.blobs.append(Blob(self, new_NN))
 
 
 

@@ -13,7 +13,7 @@ class Blob(ParentSprite):
     """
 
 
-    def __init__(self, nn=None):
+    def __init__(self, model, nn=None):
         """ 
         Initialize blob by inheriting ParentSprite and assigning attributes
 
@@ -21,8 +21,18 @@ class Blob(ParentSprite):
             nn (class): can pass in the neural net from another blob
         """
         super(Blob, self).__init__() # values are not needed
-        self.int_center = int(self.center_x), int(self.center_y)
         self.radius = BLOB_BODY_RADIUS
+        overlapped = True
+        circles = model.blobs + model.foods
+        while overlapped:
+            self.center_x = random.randint(0, SCREEN_SIZE[0])
+            self.center_y = random.randint(0, SCREEN_SIZE[1])
+            overlapped = False
+            for c in circles:
+                if self.get_dist(c) < c.radius + self.radius:
+                    overlapped = True
+                    break
+        self.int_center = int(self.center_x), int(self.center_y)
         self.angle = random.uniform(0,2*np.pi)
         self.energy = MAX_ENERGY
         self.alive = True
@@ -380,7 +390,7 @@ class Blob(ParentSprite):
         return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]) >= 0
 
 
-    def update_transform(self):
+    def update_transform(self, model):
 
         x, y = self.center_x, self.center_y
         theta = self.angle
@@ -396,16 +406,20 @@ class Blob(ParentSprite):
                 sigma = rwr * wr / al
                 new_x = x + (al / 2) * np.sin(sigma) * np.cos(theta) + ((al / 2) * np.cos(sigma) - (al / 2)) * np.sin(theta)
                 new_y = y + (al / 2) * np.sin(sigma) * np.sin(theta) + ((al / 2) * np.cos(sigma) - (al / 2)) * np.cos(theta)
-                self.pos = (new_x, new_y)
-                self.rot -= sigma
+                self.center_x, self.center_y = new_x, new_y
+                self.int_center = int(self.center_x), int(self.center_y)
+                self.angle -= sigma
+                self.out_of_bounds()
 
             elif lwr != 0 and rwr == 0:
 
                 sigma = lwr * wr / al
                 new_x = x + (al / 2) * np.sin(sigma) * np.cos(theta) + ((al / 2) * np.cos(sigma) - (al / 2)) * np.sin(theta)
                 new_y = y + (al / 2) * np.sin(sigma) * np.sin(theta) + ((al / 2) * np.cos(sigma) - (al / 2)) * np.cos(theta)
-                self.pos = (new_x, new_y)
-                self.rot += sigma
+                self.center_x, self.center_y = new_x, new_y
+                self.int_center = int(self.center_x), int(self.center_y)
+                self.angle += sigma
+                self.out_of_bounds()
         
         elif lwr == rwr:
             
@@ -448,13 +462,34 @@ class Blob(ParentSprite):
             #print "new(x,y) = (%f,%f)" % \
             #   (axle_of_movement_rotation_x + np.cos(-np.pi/2 + theta + angle_of_movement), \
             #   axle_of_movement_rotation_y + np.sin(-np.pi/2 + theta + angle_of_movement))
-            
-            # update new transform
+
             R = radius_of_movement_from_center
             sigma = angle_of_movement
             new_x = x + R * np.sin(sigma) * np.cos(theta) + (R * np.cos(sigma) - R) * np.sin(theta)
             new_y = y + R * np.sin(sigma) * np.sin(theta) + (R * np.cos(sigma) - R) * np.cos(theta)
-            
+    
+            # check if the new position overlaps with any other blobs        
+            overlaps_with_another_blob = False
+            for b in model.blobs:
+                if b != self:
+                    dist = np.sqrt((new_x - b.center_x)**2 + (new_y - b.center_y)**2)
+                    if dist <= 2 * BLOB_BODY_RADIUS:
+                        overlaps_with_another_blob = True
+                        break
+
+            # if there is an overlap
+            if overlaps_with_another_blob:
+
+                # reverse its change in position
+                new_x, new_y = 2*self.center_x - new_x, 2*self.center_y - new_y
+
+            # don't let blobs go out of bounds
+            if new_x > SCREEN_SIZE[0]: new_x = SCREEN_SIZE[0]
+            if new_x < 0: new_x = 0
+            if new_y > SCREEN_SIZE[1]: new_y = SCREEN_SIZE[1]
+            if new_y < 0: new_y = 0
+
+            # update new transform
             self.center_x, self.center_y = new_x, new_y
             self.int_center = int(self.center_x), int(self.center_y)
             self.angle += angle_of_movement
@@ -538,10 +573,10 @@ class Blob(ParentSprite):
                 del model.foods[i]
 
                 # create another food 
-                model.foods.append(Food())
+                model.foods.append(Food(model))
 
                 # create another blob with a similar nn
-                model.blobs.append(Blob(NN([(1, self.nn)])))
+                model.blobs.append(Blob(model, NN([(1, self.nn)])))
 
                 # kill lowest energy blob if there are more than BLOB_NUM blobs
                 #if len(model.blobs) > BLOB_NUM:
@@ -573,7 +608,7 @@ class Blob(ParentSprite):
         # update position and energy level based on neural network output
         old_pos   = (self.center_x, self.center_y)
         old_angle = self.angle
-        self.update_transform()
+        self.update_transform(model)
         new_pos   = (self.center_x, self.center_y)
         new_angle = self.angle
         displacement = math.sqrt((new_pos[0] - old_pos[0]) ** 2 + (new_pos[1] - new_pos[1]) ** 2)

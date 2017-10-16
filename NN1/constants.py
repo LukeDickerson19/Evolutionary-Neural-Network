@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 
 SCREEN_SIZE = (800, 500)
-FOOD_NUM = 8
+FOOD_NUM = 7
 BLOB_NUM = 10
 NUM_PARENTS = 2
 MUTATION_RATE = 0.2
