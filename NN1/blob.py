@@ -22,7 +22,7 @@ class Blob(ParentSprite):
         """
         super(Blob, self).__init__() # values are not needed
         self.int_center = int(self.center_x), int(self.center_y)
-        self.radius = 15.0
+        self.radius = BLOB_BODY_RADIUS
         self.angle = random.uniform(0,2*np.pi)
         self.energy = MAX_ENERGY
         self.alive = True
@@ -33,18 +33,10 @@ class Blob(ParentSprite):
 
         self.color = np.random.randint(256, size=3)
 
-        self.wheel_radius = 1.50
-        self.axle_length = 1.0 * (2 * self.radius)
         self.left_wheel_rotation  = 0.0
         self.right_wheel_rotation = 0.0
 
-        self.max_wheel_angular_velocity = np.pi / 564 # max pixel displacement per time step
-        self.max_rotation = np.pi / 20
-
         # visual input variables
-        self.eye_position = np.pi / 7 # angle from direction they're facing
-        self.eye_peripheral_width = np.pi / 4 # angle from center of eye's vision to edge of peripheral
-        self.max_visable_distance = 8 * self.radius # how far the eye can see
         self.eye_data = {'left_eye':{'pos':[0,0], 'left_peripheral': [0,0], 'right_peripheral': [0,0]}, 
                         'right_eye':{'pos':[0,0], 'left_peripheral': [0,0], 'right_peripheral': [0,0]}}
         self.visual_input = {'left_eye':[0.0, 0.0, 0.0],  # left eye:  red, green, blue
@@ -55,12 +47,8 @@ class Blob(ParentSprite):
 
         ########## TEST VARIABLES ############
 
-        self.left_eye_pos  = (0,0)
-        self.right_eye_pos = (0,0)
-        self.p_left  = (10,10)
-        self.p_right = (20,20)
-        self.f = (30,30)
-        self.l1 = 5
+        # self.p_left  = (10,10)
+        # self.p_right = (20,20)
 
         ######################################
 
@@ -86,7 +74,7 @@ class Blob(ParentSprite):
         if self.angle < -2 * np.pi:
             self.angle = -self.angle % (2 * np.pi)
 
-    # this is the old way of inputting sight, its causes the program to run very slowly
+    # update the inputs of the nn w/ the current data
     def update_input(self, model):
         
         self.update_sight(model)
@@ -101,93 +89,6 @@ class Blob(ParentSprite):
             self.visual_input['right_eye'][2])
         print 'Energy:\t%f' % self.energy
         print ''
-
-    def old_update_sight(self):
-
-        # variable setup
-        x, y, r, theta = self.center_x, self.center_y, self.radius, self.angle
-        eye_sep = self.eye_position
-        vis_dist = self.max_visable_distance
-        periph_angle = self.eye_peripheral_width
-        
-        # reset input 
-        lr, lg, lb, rr, rg, rb = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-        # LEFT EYE
-        
-        # get left field of vision
-        left_eye_pos = [x + r * np.cos(theta - eye_sep), y + r * np.sin(theta - eye_sep)]
-        far_outer_left_peripheral = (left_eye_pos[0] + vis_dist * np.cos(theta - eye_sep - periph_angle), \
-                                     left_eye_pos[1] + vis_dist * np.sin(theta - eye_sep - periph_angle))
-        far_inner_left_peripheral = (left_eye_pos[0] + vis_dist * np.cos(theta - eye_sep + periph_angle), \
-                                     left_eye_pos[1] + vis_dist * np.sin(theta - eye_sep + periph_angle))
-
-        # analysis left field of vision
-        num_angles = 2 * r
-        num_pts_per_ray = 2 * r
-        angles = np.linspace((theta - eye_sep - periph_angle), (theta - eye_sep + periph_angle), num_angles)
-        vis_depth = np.linspace(3.5 * r / 8, vis_dist, num_pts_per_ray)
-        self.left_eye_points_seen = []
-        for angle in angles:
-            for i in vis_depth:
-                px, py = int(left_eye_pos[0] + i * np.cos(angle)), int(left_eye_pos[1] + i * np.sin(angle))
-                if px >= SCREEN_SIZE[0] or px < 0 or py >= SCREEN_SIZE[1] or py < 0:
-                    pixel_color = [0,0,0,0]
-                else:
-                    pixel_color = view.screen.get_at((px, py))
-                #print 'i = %d, angle = %f, px=%f, py=%f, pixel_color = %s' % (i, angle, px, py, pixel_color)
-                self.left_eye_points_seen.append((px,py))
-                if pixel_color != (0,0,0,255):
-                    lr += pixel_color[0]
-                    lg += pixel_color[1]
-                    lb += pixel_color[2]
-                    break
-
-        lr /= (255 * num_angles)
-        lg /= (255 * num_angles)
-        lb /= (255 * num_angles)
-        self.visual_input['left_eye'] = [lr, lg, lb]
-        
-        # RIGHT EYE
-        right_eye_pos = (x + r * np.cos(theta + eye_sep), y + r * np.sin(theta + eye_sep))
-        far_outer_right_peripheral = (right_eye_pos[0] + vis_dist * np.cos(theta + eye_sep - periph_angle), \
-                                      right_eye_pos[1] + vis_dist * np.sin(theta + eye_sep - periph_angle))
-        far_inner_right_peripheral = (right_eye_pos[0] + vis_dist * np.cos(theta + eye_sep + periph_angle), \
-                                      right_eye_pos[1] + vis_dist * np.sin(theta + eye_sep + periph_angle))
-
-        # analysis right field of vision
-        angles = np.linspace((theta + eye_sep - periph_angle), (theta + eye_sep + periph_angle), num_angles)
-        vis_depth = np.linspace(1.75 * r / 8, vis_dist, num_pts_per_ray)
-        self.right_eye_points_seen = []
-        for angle in angles:
-            for i in vis_depth:
-                px, py = int(right_eye_pos[0] + i * np.cos(angle)), int(right_eye_pos[1] + i * np.sin(angle))
-                #print (px, py)
-                if px >= SCREEN_SIZE[0] or px < 0 or py >= SCREEN_SIZE[1] or py < 0:
-                    pixel_color = [0,0,0,0]
-                else:
-                    pixel_color = view.screen.get_at((px, py))
-                #print 'i = %d, angle = %f, px=%f, py=%f, pixel_color = %s' % (i, angle, px, py, pixel_color)
-                self.right_eye_points_seen.append((px,py))
-                if pixel_color != (0,0,0,255):
-                    rr += pixel_color[0]
-                    rg += pixel_color[1]
-                    rb += pixel_color[2]
-                    break
-
-        rr /= (255 * num_angles)
-        rg /= (255 * num_angles)
-        rb /= (255 * num_angles)
-        self.visual_input['right_eye'] = [rr, rg, rb]
-        
-
-        # draw points that were analyzed
-        #for pt in self.left_eye_points_seen:
-        #   pygame.draw.circle(surface, [255,0,0], pt, 1)
-
-        # draw points that were analyzed
-        #for pt in self.right_eye_points_seen:
-        #   pygame.draw.circle(surface, [0,255,0], pt, 1)
 
     # input sight
     def update_sight(self, model):
@@ -214,14 +115,19 @@ class Blob(ParentSprite):
         # get rgb for right eye
         self.update_eye_rgb(self.right_arcs, 'right_eye')
     def update_eye_data(self, eye):
+        """
+        this function finds the x,y position of the 
+        eye itself, and the far left and right points
+        of its peripheral vision
+        """
 
         # general variable setup
         x, y, r, theta = self.center_x, self.center_y, self.radius, self.angle
         
         # eye variable setup
-        eye_sep = self.eye_position
-        vis_dist = self.max_visable_distance
-        periph_angle = self.eye_peripheral_width
+        eye_sep = EYE_SEPARATION
+        vis_dist = MAX_VISABLE_DISTANCE
+        periph_angle = EYE_PERIPHERAL_WIDTH
         
         if eye == 'left_eye': e = -1
         else: e = 1 # right eye
@@ -234,20 +140,22 @@ class Blob(ParentSprite):
             (eye_pos[0] + vis_dist * np.cos(theta + e*eye_sep + periph_angle), \
              eye_pos[1] + vis_dist * np.sin(theta + e*eye_sep + periph_angle))
     def update_visual_field(self, circles, eye):
+        """
+        this function finds the objects that are in 
+        the blob's field of view and then creates and
+        returns a list of the arcs of those objects 
+        that the blob sees
+        """
 
-        # find the outer edge points of the arc of c that is visable from eye_pos
-        # point perpendicular to surface of circle that makes line with eye
-        
         eye_pos = self.eye_data[eye]['pos']
         left_peripheral = self.eye_data[eye]['left_peripheral'] 
         right_peripheral = self.eye_data[eye]['right_peripheral']
 
-        vision_opaquness = 25 # how opaque the view draws the arcs of the vision (0 to 255)
         arcs = [{ # start with just 1 empty field of vision
         'left_side':left_peripheral, # left_side = the point on the 
         'right_side':right_peripheral,
-        'd':self.max_visable_distance, # distance from eye to arc
-        'color':[255,255,255,vision_opaquness], # opaque white
+        'd':MAX_VISABLE_DISTANCE, # distance from eye to arc
+        'color':[255,255,255,VISION_OPAQUENESS], # opaque white
         'empty':True # if the arc represents empty space or a circle
         }]
 
@@ -264,7 +172,7 @@ class Blob(ParentSprite):
             d = np.sqrt(dx**2 + dy**2)
 
             # if its within the blob's vision
-            if d - cr <= self.max_visable_distance:
+            if d - cr <= MAX_VISABLE_DISTANCE:
 
                 # p_left = the point on the edge of circle c that is
                 # forms a line tangent to c when connected to eye_pos.
@@ -273,8 +181,8 @@ class Blob(ParentSprite):
                 a2 = np.arcsin(cr/d) # a2 = angle between line from eye_pos to c and line from eye_pos to p_left
                 d2 = np.sqrt(d**2 - cr**2) # d2 = distance from eye_pos to p_left
                 # if the circle c is just barely on the outside of the max_visable_distane
-                if d2 > self.max_visable_distance:
-                    d2 = self.max_visable_distance
+                if d2 > MAX_VISABLE_DISTANCE:
+                    d2 = MAX_VISABLE_DISTANCE
                     a2 = np.arccos((d2**2 + d**2 - cr**2)/(2*d2*d))
                 p_left = (ex + d2*np.cos(a-a2), ey + d2*np.sin(a-a2))
                 
@@ -291,7 +199,7 @@ class Blob(ParentSprite):
                     # if p_right is on the right side of left periferal
                     if self.right_side(eye_pos, left_peripheral, p_right):
 
-                        col = [c.color[0], c.color[1], c.color[2], vision_opaquness]
+                        col = [c.color[0], c.color[1], c.color[2], VISION_OPAQUENESS]
                         first_arc, last_arc = True, False # first and last arc in the iteration
                         original_arcs = []
                         for a in arcs: original_arcs.append(a)
@@ -423,15 +331,20 @@ class Blob(ParentSprite):
         #print ''
         return arcs
     def update_eye_rgb(self, arcs_in_view, eye):
+        """
+        this function uses the list of arcs of what the blob's eye sees
+        do determine the percentage of the visual field that each 
+        color r,g, and b take up
+        """
 
         x, y, r = self.center_x, self.center_y, self.radius
-        theta, eye_sep = self.angle, self.eye_position
+        theta, eye_sep = self.angle, EYE_SEPARATION
         if eye == 'left_eye':
             ex, ey = x + r * np.cos(theta - eye_sep), y + r * np.sin(theta - eye_sep)
         else:
             ex, ey = x + r * np.cos(theta + eye_sep), y + r * np.sin(theta + eye_sep)
 
-        total_angle = 2 * self.eye_peripheral_width # all of visual field
+        total_angle = 2 * EYE_PERIPHERAL_WIDTH # all of visual field
                     
         r,g,b = 0.0,0.0,0.0
         for a in arcs_in_view:
@@ -473,8 +386,8 @@ class Blob(ParentSprite):
         theta = self.angle
         lwr = self.left_wheel_rotation
         rwr = self.right_wheel_rotation
-        wr = self.wheel_radius
-        al = self.axle_length
+        wr = WHEEL_RADIUS
+        al = AXLE_LENGTH
 
         if lwr == 0 or rwr == 0:
 
@@ -498,8 +411,10 @@ class Blob(ParentSprite):
             
             # calculate and update new position (no change in rotation)
             distance_traveled = lwr * wr
-            self.pos = (x + distance_traveled * np.cos(theta), \
-                        y + distance_traveled * np.sin(theta))
+            self.center_x, self.center_y = \
+                x + distance_traveled * np.cos(theta), \
+                y + distance_traveled * np.sin(theta)
+            self.int_center = int(self.center_x), int(self.center_y)
 
         else:
 
@@ -601,35 +516,6 @@ class Blob(ParentSprite):
 
         return self.nn.process(env)
 
-    def get_things_within_sight(self, list_of_things):
-        """
-        determines what objects are within a blob's field of vision
-
-        Args:
-            list_of_things (list): a list of objects created using ParentSprite class
-
-        Returns:
-            list containing objects in a blob's field of vision
-        """
-        in_sight = []
-
-        #iterate through all food
-        for thing in list_of_things:
-            distance = self.get_dist(thing)
-            #checks if thing is within blob's radius of sight, and not right on top of it
-            #right on top of itself is important when checking if other blobs are within sight
-            if distance > 0:
-                theta = self.angle - self.angle_between(thing)
-                theta = (theta + (2 * np.pi)) % (2 * np.pi)
-                #checks if food is within the blob's angle of sight
-                if np.fabs(theta) < self.sight_angle:
-                    #within sight
-                    in_sight.append(thing)
-
-        #return all the things in the list that are within sight
-        return in_sight
-    
-
     def eat_food(self, model):
         """ 
         tests whether or not a blob eats food on a given frame. If a blob 
@@ -664,7 +550,6 @@ class Blob(ParentSprite):
                 #        energy_list.append(blob.energy)
                 #    del model.blobs[np.argmin(energy_list)]
 
-
     def score(self):
         """
         gives a blob's score based on: self.food_eaten
@@ -673,7 +558,6 @@ class Blob(ParentSprite):
             the score of the blob
         """
         return self.food_eaten
-
 
     def update(self, model):
         """ 

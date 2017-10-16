@@ -16,8 +16,8 @@ class Food(ParentSprite):
         """
         super(Food, self).__init__()
         #self.center_x, self.center_y = SCREEN_SIZE[0] / 2, SCREEN_SIZE[1] / 2
-        self.radius = random.randint(5, 10)
-        self.color = pygame.Color('orange')
+        self.radius = FOOD_RADIUS
+        self.color = FOOD_COLOR
         #self.center_x, self.center_y = x, y
         #self.radius = r
         #self.color = col

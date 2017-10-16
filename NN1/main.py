@@ -15,26 +15,21 @@ import os
 
         SHORT TERM (now):
 
-            fix right eye
-                display just right eye
-
             figure out that error that occationaly occurs
             in processing the visual field
-
-            find places in vision where redundent calculations and code exist
+                take a picture of the error message
+                it says something like array index out of bounds
+                in the arc array for the visual field in the blob.py file
 
             make it so blobs cannot overlap with eachother
                 currently the program crashes when this happens b/c vision
                 equations divide by 0 or something
+                make it so when their inital position is 
+                created if there is an overlap the position is recalculated
 
-            make it so health/energy bar is visable when you hover mouse over blob
-            also have circle around mouse
-
-            make it so you can pause the game w/ spacebar
-
-            put all the blob and food variables that are constant in the constants.py file
-                delete all the places they're initialized in the init of the blob's and food
-                change all the names in the rest of the files
+            currently theres nothing that limits how fast a blob can move
+            i made a variable called max_wheel_angular_velocity in the blob init
+            but nothing uses it yet
 
         MEDIUM TERM (later):
 
@@ -42,9 +37,12 @@ import os
             they have sight
             and food appears randomly around the screen
 
-                take it step by step
-                comment out everything in the loop
-                print out stuff to console
+            make it so health/energy bar is visable when you hover mouse over blob
+            also have circle around mouse
+            maybe make it so when you click on the blob its health is displayed
+            along with vision and other info
+
+            make hearing and smell sensors
 
 
         LONG TERM (eventually):
@@ -163,14 +161,18 @@ class PyGameView(object):
     def draw_visual_field(self, blob, eye):
         
         ex, ey = blob.eye_data[eye]['pos'][0], blob.eye_data[eye]['pos'][1]
-        if eye == 'left_eye': e = -1
-        else: e = 1 # right eye
+        if eye == 'left_eye':
+            e = -1
+            arcs = blob.left_arcs
+        else: # right eye
+            e = 1
+            arcs = blob.right_arcs
         # pygame.gfxdraw.pie(self.screen, \
         #     int(ex), int(ey), int(blob.max_visable_distance), \
-        #     int(180 * (theta + e*eye_sep - periph_angle) / np.pi), \
-        #     int(180 * (theta + e*eye_sep + periph_angle) / np.pi), \
+        #     int(180 * (blob.angle + e*blob.eye_separation - blob.eye_peripheral_width) / np.pi), \
+        #     int(180 * (blob.angle + e*blob.eye_separation + blob.eye_peripheral_width) / np.pi), \
         #     pygame.Color('white'))
-        for a in blob.left_arcs:
+        for a in arcs:
             d = a['d']
             left_angle  = np.arctan2(ey - a['left_side'][1],  ex - a['left_side'][0])
             right_angle = np.arctan2(ey - a['right_side'][1], ex - a['right_side'][0])
@@ -277,6 +279,7 @@ class PyGameKeyboardController(object):
             model (object): contains attributes of the environment
         """
         self.model = model
+        self.paused = False
 
 
     def handle_event(self, event):
@@ -289,7 +292,7 @@ class PyGameKeyboardController(object):
         if event.type != KEYDOWN:
             return True
         elif event.key == pygame.K_SPACE:
-            return False
+            self.paused = not self.paused
         elif event.key == pygame.K_d:
             for blob in model.blobs:
                 print 'W1 is'
@@ -326,6 +329,7 @@ if __name__ == '__main__':
     running = True
 
     while running:
+        
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
@@ -333,7 +337,10 @@ if __name__ == '__main__':
                 # handle event can end pygame loop
                 if not controller.handle_event(event):
                     running = False
-        model.update()
+
+        if not controller.paused:
+            model.update()
+        
         if model.show_gen:
             view.draw()
             #time.sleep(model.sleep_time)
