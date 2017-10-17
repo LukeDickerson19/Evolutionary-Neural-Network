@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 
 SCREEN_SIZE = (800, 500)
+INFO_BOX_SIZE = (400, SCREEN_SIZE[1])
 FOOD_NUM = 7
 BLOB_NUM = 10
 NUM_PARENTS = 2

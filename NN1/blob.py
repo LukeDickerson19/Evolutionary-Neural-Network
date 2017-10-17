@@ -92,11 +92,12 @@ class Blob(ParentSprite):
     def update_input(self, model):
         
         self.update_sight(model)
-        #self.print_input()
+        self.update_smell(model)
+        if self == model.selected_circle: self.print_input()
     def print_input(self):
+        self.print_energy()
         self.print_sight()
         self.print_smell()
-        self.print_energy()
         print ''
 
     # input sight
@@ -365,9 +366,9 @@ class Blob(ParentSprite):
                 if left_angle > 0 and right_angle < 0: right_angle += 2*np.pi
                 arc_angle = abs(left_angle - right_angle)
 
-                r += (a['color'][0] / 255) * (arc_angle / total_angle)
-                g += (a['color'][1] / 255) * (arc_angle / total_angle)
-                b += (a['color'][2] / 255) * (arc_angle / total_angle)
+                r += (a['color'][0] / 255.0) * (arc_angle / total_angle)
+                g += (a['color'][1] / 255.0) * (arc_angle / total_angle)
+                b += (a['color'][2] / 255.0) * (arc_angle / total_angle)
 
         self.visual_input[eye] = [r,g,b]            
     def left_side(self, A, B, C):
@@ -406,15 +407,15 @@ class Blob(ParentSprite):
         blob_smell = 0.0
         for blob in model.blobs:
             if blob != self:
-                blob_smell += \
-                (-2 / (1 + exp(-(2 / (3*BLOB_BODY_RADIUS)) * self.get_dist(blob))) + 2)
-        self.blob_smell = 2 / (1+exp(-4*blob_smell)) - 1 # sqash it
+               blob_smell += \
+                (-2 / (1 + np.exp(-(2 * self.get_dist(blob)) / (3*BLOB_BODY_RADIUS))) + 2)
+        self.blob_smell = 2 / (1 + np.exp(-4*blob_smell)) - 1 # sqash it
 
         food_smell = 0.0
         for food in model.foods:
             food_smell += \
-            (-2 / (1 + exp(-(2 / (3*BLOB_BODY_RADIUS)) * self.get_dist(blob))) + 2)
-        self.food_smell = 2 / (1+exp(-4*blob_smell)) - 1 # sqash it
+            (-2 / (1 + np.exp(-(2 * self.get_dist(food)) / (3*BLOB_BODY_RADIUS))) + 2)
+        self.food_smell = 2 / (1 + np.exp(-4*food_smell)) - 1 # sqash it
     def print_smell(self):
         
         print 'Nose:\tBlob Smell: %.3f\tFood Smell: %.3f' \
