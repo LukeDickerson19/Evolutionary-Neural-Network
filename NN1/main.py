@@ -15,6 +15,14 @@ import os
 
         SHORT TERM (now):
 
+            make it so you can click on a blob and it displays
+            data on it in a box on the right 
+                make box another pygame surface
+                    goal is not to fuck up simulation
+                make mouse have selection circle around it
+                    see if you can get mouse wheel data to control radius of circle
+                use this to test vision and smell and energy
+
             figure out that error that occationaly occurs
             in processing the visual field
                 take a picture of the error message
@@ -26,15 +34,6 @@ import os
             but nothing uses it yet
 
         MEDIUM TERM (later):
-
-            get it to the point where there are bots moving around
-            they have sight
-            and food appears randomly around the screen
-
-            make it so health/energy bar is visable when you hover mouse over blob
-            also have circle around mouse
-            maybe make it so when you click on the blob its health is displayed
-            along with vision and other info
 
             make hearing and smell sensors
 

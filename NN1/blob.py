@@ -53,6 +53,10 @@ class Blob(ParentSprite):
                             'right_eye':[0.0, 0.0, 0.0]}  # right eye: red, green, blue   
         self.left_arcs, self.right_arcs = [], [] # list of arcs of what the blob sees
 
+        # smell input variables
+        self.food_smell = 0.0 # the closer a piece of food is the closer food_smell will be to 1
+        self.blob_smell = 0.0 # the closer a blob is the closer blob_smell will be to 1
+
         ######################
 
         ########## TEST VARIABLES ############
@@ -90,14 +94,9 @@ class Blob(ParentSprite):
         self.update_sight(model)
         #self.print_input()
     def print_input(self):
-        print 'Eyes:\tLeft RGB: [%.3f, %.3f, %.3f] Right RGB: [%.3f, %.3f, %.3f]' \
-         % (self.visual_input['left_eye'][0], \
-            self.visual_input['left_eye'][1], \
-            self.visual_input['left_eye'][2], \
-            self.visual_input['right_eye'][0], \
-            self.visual_input['right_eye'][1], \
-            self.visual_input['right_eye'][2])
-        print 'Energy:\t%f' % self.energy
+        self.print_sight()
+        self.print_smell()
+        self.print_energy()
         print ''
 
     # input sight
@@ -371,14 +370,18 @@ class Blob(ParentSprite):
                 b += (a['color'][2] / 255) * (arc_angle / total_angle)
 
         self.visual_input[eye] = [r,g,b]            
-
-    # determine if point C is on the left or right side
-    # of line AB from point A's perspective
     def left_side(self, A, B, C):
+    
+        # determine if point C is on the left side
+        # of line AB from point A's perspective
 
         # sign((Bx - Ax) * (y - Ay) - (By - Ay) * (x - Ax))
         # + if (x,y) is to the left of line AB, from pt A's perspective,
         # 0 if on the line, and - if to the right
+
+        # its weird, bc when testing it with an arbitrary line and point\
+        # + is left, and - is right, but in the simulation it catches it
+        # properly when its flipped
 
         return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]) <= 0
     def right_side(self, A, B, C):
@@ -388,8 +391,59 @@ class Blob(ParentSprite):
         # 0 if on the line, and - if to the right
 
         return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]) >= 0
+    def print_sight(self):
+        print 'Eyes:\tLeft RGB: [%.3f, %.3f, %.3f] Right RGB: [%.3f, %.3f, %.3f]' \
+         % (self.visual_input['left_eye'][0], \
+            self.visual_input['left_eye'][1], \
+            self.visual_input['left_eye'][2], \
+            self.visual_input['right_eye'][0], \
+            self.visual_input['right_eye'][1], \
+            self.visual_input['right_eye'][2])
+        
+    # input smell
+    def update_smell(self, model):
 
+        blob_smell = 0.0
+        for blob in model.blobs:
+            if blob != self:
+                blob_smell += \
+                (-2 / (1 + exp(-(2 / (3*BLOB_BODY_RADIUS)) * self.get_dist(blob))) + 2)
+        self.blob_smell = 2 / (1+exp(-4*blob_smell)) - 1 # sqash it
 
+        food_smell = 0.0
+        for food in model.foods:
+            food_smell += \
+            (-2 / (1 + exp(-(2 / (3*BLOB_BODY_RADIUS)) * self.get_dist(blob))) + 2)
+        self.food_smell = 2 / (1+exp(-4*blob_smell)) - 1 # sqash it
+    def print_smell(self):
+        
+        print 'Nose:\tBlob Smell: %.3f\tFood Smell: %.3f' \
+         % (self.blob_smell, self.food_smell)
+
+    # update energy
+    def update_energy(self, model, velocity, angular_velocity):
+        """ 
+        updates self.energy of a blob based on the distance it moves and an 
+        energy loss constant
+
+        Args:
+            model (object): contains attributes of the environment
+            velocity (float): the distance the blob will move
+            angular_velocity (float): the angle the blob will change
+        """
+        #subtract evergy based on distance moved
+        self.energy -= np.abs(velocity) + np.abs(angular_velocity) + ENERGY_LOSS_CONSTANT
+        if self.energy < 0:
+            self.alive = False
+            self.score_int = self.score()
+            model.vip_genes.append((self.score_int, self.nn))
+
+            model.blobs.remove(self)
+    def print_energy(self):
+        
+        print 'Energy:\t%.3f' % self.energy
+
+    # update position and orientation
     def update_transform(self, model):
 
         x, y = self.center_x, self.center_y
@@ -513,24 +567,7 @@ class Blob(ParentSprite):
             # draw direction robot is facing
             #pygame.draw.line(surface, [255,0,0], \
             #[x + 200 * np.cos(theta), y + 200 * np.sin(theta)], [x,y])
-    def update_energy(self, model, velocity, angular_velocity):
-        """ 
-        updates self.energy of a blob based on the distance it moves and an 
-        energy loss constant
-
-        Args:
-            model (object): contains attributes of the environment
-            velocity (float): the distance the blob will move
-            angular_velocity (float): the angle the blob will change
-        """
-        #subtract evergy based on distance moved
-        self.energy -= np.abs(velocity) + np.abs(angular_velocity) + ENERGY_LOSS_CONSTANT
-        if self.energy < 0:
-            self.alive = False
-            self.score_int = self.score()
-            model.vip_genes.append((self.score_int, self.nn))
-
-            model.blobs.remove(self)
+    
 
     def process_neural_net(self):
         """
@@ -624,5 +661,4 @@ class Blob(ParentSprite):
         # re-assign targets
         #self.target_closest_blob(self.get_things_within_sight(model.blobs))
         #self.target_closest_food(self.get_things_within_sight(model.foods))
-
 
