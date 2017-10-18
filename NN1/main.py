@@ -15,16 +15,13 @@ import os
 
         SHORT TERM (now):
 
-            mouse wheel controls circle radius
-
             make it so you can click on a blob and it displays
             data on it in a box on the right 
-                make mouse have selection circle around it
-                    get mouse circle to select blobs or food
-                        what to do if both are in circle?
-                    put mouse stuff in controller and/or view, not the model
-                        want to be able to pause it and click a blob
-                use this to test vision and smell and energy
+                work on display of outputs of NN now
+                    need to give wheel spped a min and max
+                what other inputs should there be?
+                is this enough
+                is the display clear enough?
 
             figure out that error that occationaly occurs
             in processing the visual field
@@ -238,64 +235,87 @@ class PyGameView(object):
                 
                 # draw inputs of neural network
                 bar = (40, 10)
-                bar_start_x = 30
+                bar_input_x = 30
 
                 # energy
-                self.draw_text_in_info_box('E', 5, 5, 20, [255, 255, 255])
+                bar_y = 5
+                self.draw_text_in_info_box('E', 5, bar_y, 20, [255, 255, 255])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 5, (blob.energy/MAX_ENERGY)*bar[0], bar[1]])
+                    [bar_input_x, bar_y, (blob.energy/MAX_ENERGY)*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 5, bar[0], bar[1]], 1)
+                    [bar_input_x, bar_y, bar[0], bar[1]], 1)
 
                 # left eye
-                self.draw_text_in_info_box('L', 5, 30+bar[1], 20, [255, 255, 255])
+                bar_y = 30
+                self.draw_text_in_info_box('L', 5, bar_y+bar[1], 20, [255, 255, 255])
                 lr, lg, lb = blob.visual_input['left_eye']
                 if lr > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('red'), \
-                        [bar_start_x, 30, lr*bar[0], bar[1]])
+                        [bar_input_x, bar_y, lr*bar[0], bar[1]])
                 if lg > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('green'), \
-                        [bar_start_x, 30+bar[1], lg*bar[0], bar[1]])
+                        [bar_input_x, bar_y+bar[1], lg*bar[0], bar[1]])
                 if lb > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('blue'), \
-                        [bar_start_x, 30+2*bar[1], lb*bar[0], bar[1]])
+                        [bar_input_x, bar_y+2*bar[1], lb*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 30,        bar[0], 3*bar[1]], 1)
+                    [bar_input_x, bar_y,        bar[0], 3*bar[1]], 1)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 30+bar[1], bar[0], bar[1]], 1)
+                    [bar_input_x, bar_y+bar[1], bar[0], bar[1]], 1)
 
                 # right eye
-                self.draw_text_in_info_box('R', 5, 70+bar[1], 20, [255, 255, 255])
+                bar_y = 70
+                self.draw_text_in_info_box('R', 5, bar_y+bar[1], 20, [255, 255, 255])
                 rr, rg, rb = blob.visual_input['right_eye']
                 if rr > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('red'), \
-                        [bar_start_x, 70, rr*bar[0], bar[1]])
+                        [bar_input_x, bar_y, rr*bar[0], bar[1]])
                 if rg > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('green'), \
-                        [bar_start_x, 70+bar[1], rg*bar[0], bar[1]])
+                        [bar_input_x, bar_y+bar[1], rg*bar[0], bar[1]])
                 if rb > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('blue'), \
-                        [bar_start_x, 70+2*bar[1], rb*bar[0], bar[1]])
+                        [bar_input_x, bar_y+2*bar[1], rb*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 70,        bar[0], 3*bar[1]], 1)
+                    [bar_input_x, bar_y,        bar[0], 3*bar[1]], 1)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 70+bar[1], bar[0], bar[1]], 1)
+                    [bar_input_x, bar_y+bar[1], bar[0], bar[1]], 1)
 
                 # food smell
-                self.draw_text_in_info_box('FS', 5, 110, 20, [255, 255, 255])
+                bar_y = 110
+                self.draw_text_in_info_box('FS', 5, bar_y, 20, [255, 255, 255])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('orange'), \
-                    [bar_start_x, 110, blob.food_smell*bar[0], bar[1]])
+                    [bar_input_x, bar_y, blob.food_smell*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 110, bar[0], bar[1]], 1)
+                    [bar_input_x, bar_y, bar[0], bar[1]], 1)
 
                 # blob smell
-                self.draw_text_in_info_box('BS', 5, 130, 20, [255, 255, 255])
+                bar_y = 130
+                self.draw_text_in_info_box('BS', 5, bar_y, 20, [255, 255, 255])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 130, blob.blob_smell*bar[0], bar[1]])
+                    [bar_input_x, bar_y, blob.blob_smell*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_start_x, 130, bar[0], bar[1]], 1)
+                    [bar_input_x, bar_y, bar[0], bar[1]], 1)
+
 
                 # draw outpus of neural network
+                bar_output_x = 320
+
+                # left wheel rotation
+                bar_y = 60
+                self.draw_text_in_info_box('LW', bar_output_x+bar[0]+10, bar_y, 20, [255, 255, 255])
+                pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
+                    [bar_output_x, bar_y, (blob.left_wheel_rotation/MAX_WHEEL_ROTATION)*bar[0], bar[1]])
+                pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
+                    [bar_output_x, bar_y, bar[0], bar[1]], 1)
+
+                # right wheel rotation
+                bar_y = 80
+                self.draw_text_in_info_box('RW', bar_output_x+bar[0]+10, bar_y, 20, [255, 255, 255])
+                pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
+                    [bar_output_x, bar_y, (blob.right_wheel_rotation/MAX_WHEEL_ROTATION)*bar[0], bar[1]])
+                pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
+                    [bar_output_x, bar_y, bar[0], bar[1]], 1)
 
 
             elif self.model.selected_circle.__class__.__name__ == 'Food':

@@ -18,9 +18,9 @@ class NN(object):
             parents_NN (list): list of neural networks (classes)
         """
 
-        self.inputLayerSize = 7
+        self.inputLayerSize = 9
         self.outputLayerSize = 2
-        self.hiddenLayerSize = 8
+        self.hiddenLayerSize = 10
 
         if parents_NN is not None:
             self.W1, self.W2 = self.get_recombine(parents_NN)
@@ -87,8 +87,8 @@ class NN(object):
         z3 = a2.dot(self.W2)
         a3 = self.sigmoid(z3)
 
-        return [a3[0] * 10, a3[1]]  # * 5 is temp to see larger speeds given sigmoud of self.sigmoid(z3)
-
+        return [a3[0] * MAX_WHEEL_ROTATION, \
+        a3[1] * MAX_WHEEL_ROTATION]
 
     def sigmoid(self, z):
         """ 

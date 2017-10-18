@@ -582,12 +582,23 @@ class Blob(ParentSprite):
         #food_target_input = 0 if self.target_food == self else 1
 
         #preprocess neural net inputs
-        energy_input = self.energy / 1000. #scale engery between 1 through 0
+        energy_input = self.energy / MAX_ENERGY # scale engery between 1 through 0
 
         #create array containing neural net inputs
-        env = np.array(self.visual_input['left_eye'] + self.visual_input['right_eye'] + [energy_input])
+        env = np.array( \
+            self.visual_input['left_eye'] + \
+            self.visual_input['right_eye'] + \
+            [energy_input, self.blob_smell, self.food_smell])
 
         return self.nn.process(env)
+    def print_output(self):
+        self.print_wheel_rotation()
+        print ''
+
+    def print_wheel_rotation(self):
+        print 'Wheels:\tL:\t%.3f rad. = %.3f deg.\tR:\t%.3f rad. = %.3f deg.' % \
+        (self.left_wheel_rotation,  180*self.left_wheel_rotation/np.pi, \
+         self.right_wheel_rotation, 180*self.right_wheel_rotation/np.pi)
 
     def eat_food(self, model):
         """ 
@@ -642,7 +653,8 @@ class Blob(ParentSprite):
 
         # get current wheel rotations based on neural network
         [self.left_wheel_rotation, self.right_wheel_rotation] = self.process_neural_net()
-        
+        if self == model.selected_circle: self.print_output()
+
         # update position and energy level based on neural network output
         old_pos   = (self.center_x, self.center_y)
         old_angle = self.angle
