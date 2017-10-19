@@ -57,6 +57,10 @@ class Blob(ParentSprite):
         self.food_smell = 0.0 # the closer a piece of food is the closer food_smell will be to 1
         self.blob_smell = 0.0 # the closer a blob is the closer blob_smell will be to 1
 
+        # sound input variables
+        self.noise_made  = 0.0 # represents how much noise this bot is making
+        self.noise_heard = 0.0 # represents how much noise the other bots are making
+
         ######################
 
         ########## TEST VARIABLES ############
@@ -78,25 +82,19 @@ class Blob(ParentSprite):
             self.nn = NN()
 
 
-    def out_of_bounds(self):
-        """ 
-        updates self.angle so it is always between -2pi and +2pi
-        """
-
-        if self.angle > 2 * np.pi:
-            self.angle = self.angle % (2 * np.pi)
-        if self.angle < -2 * np.pi:
-            self.angle = -self.angle % (2 * np.pi)
+    ###################### INPUT ##############################
 
     # update the inputs of the nn w/ the current data
-    def update_input(self, model):
+    def update_inputs(self, model):
         
         self.update_sight(model)
+        self.update_hearing(model)
         self.update_smell(model)
         if self == model.selected_circle: self.print_input()
     def print_input(self):
         self.print_energy()
         self.print_sight()
+        self.print_hearing()
         self.print_smell()
         print ''
 
@@ -400,6 +398,23 @@ class Blob(ParentSprite):
             self.visual_input['right_eye'][0], \
             self.visual_input['right_eye'][1], \
             self.visual_input['right_eye'][2])
+
+    # input hearing
+    def update_hearing(self, model):
+
+        noise_heard = 0.0
+        for blob in model.blobs:
+            if self != blob:
+                #if self == model.selected_circle:
+                #    print 'noise_made = %.3f\tget_dist = %.3f\tnoise_heard = %.3f' \
+                #    % (blob.noise_made, self.get_dist(blob), blob.noise_made/self.get_dist(blob))
+                noise_heard += (blob.noise_made / self.get_dist(blob))
+
+        # sqash it (think of it as a max volume pervievable)
+        self.noise_heard = 2 / (1 + np.exp(-4*noise_heard)) - 1 
+    def print_hearing(self):
+        
+        print 'Ears:\t%.3f' % self.noise_heard
         
     # input smell
     def update_smell(self, model):
@@ -433,7 +448,7 @@ class Blob(ParentSprite):
             angular_velocity (float): the angle the blob will change
         """
         #subtract evergy based on distance moved
-        self.energy -= np.abs(velocity) + np.abs(angular_velocity) + ENERGY_LOSS_CONSTANT
+        self.energy -= (np.abs(velocity) + np.abs(angular_velocity) + ENERGY_LOSS_CONSTANT)
         if self.energy < 0:
             self.alive = False
             self.score_int = self.score()
@@ -443,6 +458,33 @@ class Blob(ParentSprite):
     def print_energy(self):
         
         print 'Energy:\t%.3f' % self.energy
+
+    ############################################################
+
+    ###################### OUTPUT ##############################
+
+    def update_outputs(self, model):
+        """ 
+        Update the blob's output, aka nn response to inputs
+        """
+
+        # get current wheel rotations based on neural network
+        [self.left_wheel_rotation, self.right_wheel_rotation] = self.process_neural_net()
+        if self == model.selected_circle: self.print_output()
+
+        # update position and energy level based on neural network output
+        old_pos   = (self.center_x, self.center_y)
+        old_angle = self.angle
+        self.update_transform(model)
+        new_pos   = (self.center_x, self.center_y)
+        new_angle = self.angle
+        displacement = math.sqrt((new_pos[0] - old_pos[0]) ** 2 + (new_pos[1] - new_pos[1]) ** 2)
+        angular_displacement = new_angle - old_angle
+        self.update_noise_made(displacement, angular_displacement)
+        self.update_energy(model, displacement, angular_displacement)
+
+        # interact with food objects
+        self.eat_food(model)
 
     # update position and orientation
     def update_transform(self, model):
@@ -568,7 +610,13 @@ class Blob(ParentSprite):
             # draw direction robot is facing
             #pygame.draw.line(surface, [255,0,0], \
             #[x + 200 * np.cos(theta), y + 200 * np.sin(theta)], [x,y])
-    
+
+    # updat ehow much noise this blob is makeing from its
+    # translational and angular displacements
+    def update_noise_made(self, displacement, angular_displacement):
+
+        self.noise_made = NOISE_AMPLIFIER * \
+        np.abs(displacement) + np.abs(angular_displacement)
 
     def process_neural_net(self):
         """
@@ -596,7 +644,7 @@ class Blob(ParentSprite):
         print ''
 
     def print_wheel_rotation(self):
-        print 'Wheels:\tL:\t%.3f rad. = %.3f deg.\tR:\t%.3f rad. = %.3f deg.' % \
+        print 'Wheels:\tL = %.3f rad. = %.3f deg.\tR = %.3f rad. = %.3f deg.' % \
         (self.left_wheel_rotation,  180*self.left_wheel_rotation/np.pi, \
          self.right_wheel_rotation, 180*self.right_wheel_rotation/np.pi)
 
@@ -634,6 +682,10 @@ class Blob(ParentSprite):
                 #        energy_list.append(blob.energy)
                 #    del model.blobs[np.argmin(energy_list)]
 
+    ############################################################
+
+    ###################### OTHER ###############################
+
     def score(self):
         """
         gives a blob's score based on: self.food_eaten
@@ -643,35 +695,15 @@ class Blob(ParentSprite):
         """
         return self.food_eaten
 
-    def update(self, model):
+    def out_of_bounds(self):
         """ 
-        Update the blob by calling helper functions.
+        updates self.angle so it is always between -2pi and +2pi
         """
 
-        # update inputs (visual, audial, etc.)
-        self.update_input(model)
+        if self.angle > 2 * np.pi:
+            self.angle = self.angle % (2 * np.pi)
+        if self.angle < -2 * np.pi:
+            self.angle = -self.angle % (2 * np.pi)
 
-        # get current wheel rotations based on neural network
-        [self.left_wheel_rotation, self.right_wheel_rotation] = self.process_neural_net()
-        if self == model.selected_circle: self.print_output()
-
-        # update position and energy level based on neural network output
-        old_pos   = (self.center_x, self.center_y)
-        old_angle = self.angle
-        self.update_transform(model)
-        new_pos   = (self.center_x, self.center_y)
-        new_angle = self.angle
-        displacement = math.sqrt((new_pos[0] - old_pos[0]) ** 2 + (new_pos[1] - new_pos[1]) ** 2)
-        angular_displacement = new_angle - old_angle
-        self.update_energy(model, displacement, angular_displacement)
-
-        # update color of blob
-        #self.update_color()
-
-        # interact with food objects
-        self.eat_food(model)
-
-        # re-assign targets
-        #self.target_closest_blob(self.get_things_within_sight(model.blobs))
-        #self.target_closest_food(self.get_things_within_sight(model.foods))
+    ############################################################
 

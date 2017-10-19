@@ -15,23 +15,18 @@ import os
 
         SHORT TERM (now):
 
-            make it so you can click on a blob and it displays
-            data on it in a box on the right 
-                work on display of outputs of NN now
-                    need to give wheel spped a min and max
-                what other inputs should there be?
-                is this enough
-                is the display clear enough?
+            need to make input sensors more sensitive
+            the nn isn't going to output much ever
+            if its inputs are always close to zero
+
+                consider sqashing the eye rgb inputs
+
 
             figure out that error that occationaly occurs
             in processing the visual field
                 take a picture of the error message
                 it says something like array index out of bounds
                 in the arc array for the visual field in the blob.py file
-
-            currently theres nothing that limits how fast a blob can move
-            i made a variable called max_wheel_angular_velocity in the blob init
-            but nothing uses it yet
 
         MEDIUM TERM (later):
 
@@ -72,7 +67,6 @@ class PyGameView(object):
     Provides a view of the environment in a pygame window 
     """
 
-
     def __init__(self, model, size1, size2):
         """ 
         Initialize model
@@ -84,6 +78,8 @@ class PyGameView(object):
 
         self.mouse_pos = (0,0) # mouse position
         self.mouse_radius = 30 # radius of circle around mouse
+        self.first_blob_drawing = True
+        self.first_food_drawing = True
 
     def draw_text_in_simulation(self, text, x, y, size, color = (100, 100, 100)):
         """ 
@@ -160,15 +156,16 @@ class PyGameView(object):
                 #     blob.left_eye_pos, 2)
 
                 # sight lines are toggleable
-                if model.draw_sight and model.selected_circle == None:
+                if model.draw_sight:
 
                     # draw left and right field of vision
-                    self.draw_visual_field(blob, 'left_eye')
-                    self.draw_visual_field(blob, 'right_eye')
+                    if blob != model.selected_circle:
+                        self.draw_visual_field(blob, 'left_eye')
+                        self.draw_visual_field(blob, 'right_eye')
 
         # draw vision of the selected blob
         blob = self.model.selected_circle
-        if model.draw_sight and blob != None and blob.__class__.__name__ == 'Blob':
+        if blob != None and blob.__class__.__name__ == 'Blob':
                 self.draw_visual_field(blob, 'left_eye')
                 self.draw_visual_field(blob, 'right_eye')
 
@@ -219,35 +216,36 @@ class PyGameView(object):
             
     def draw_info_box(self):
 
-        # fill background
-        self.info_box_surface.fill(pygame.Color('black'))
-
-        # draw line that separates info box from simulation
-        pygame.draw.line( \
-            self.info_box_surface, \
-            pygame.Color('white'), \
-            (0,0), (0,INFO_BOX_SIZE[1]))
-
-
+        # draw nn of selected bot
         if self.model.selected_circle != None:
             if self.model.selected_circle.__class__.__name__ == 'Blob':
                 blob = self.model.selected_circle
-                
+
+                # fill background (just the nn diagram part)
+                pygame.draw.rect(self.info_box_surface, pygame.Color('black'), \
+                    [0, 0, INFO_BOX_SIZE[0], 190])
+
+                # draw line that separates info box from simulation
+                pygame.draw.line( \
+                    self.info_box_surface, \
+                    pygame.Color('white'), \
+                    (0,0), (0,INFO_BOX_SIZE[1]))
+
                 # draw inputs of neural network
                 bar = (40, 10)
                 bar_input_x = 30
 
                 # energy
                 bar_y = 5
-                self.draw_text_in_info_box('E', 5, bar_y, 20, [255, 255, 255])
+                self.draw_text_in_info_box('E', 5, bar_y, 20)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, (blob.energy/MAX_ENERGY)*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, bar[0], bar[1]], 1)
+                bar_y += 20
 
                 # left eye
-                bar_y = 30
-                self.draw_text_in_info_box('L', 5, bar_y+bar[1], 20, [255, 255, 255])
+                self.draw_text_in_info_box('LE', 5, bar_y+bar[1], 20)
                 lr, lg, lb = blob.visual_input['left_eye']
                 if lr > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('red'), \
@@ -262,10 +260,10 @@ class PyGameView(object):
                     [bar_input_x, bar_y,        bar[0], 3*bar[1]], 1)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y+bar[1], bar[0], bar[1]], 1)
+                bar_y += 40
 
                 # right eye
-                bar_y = 70
-                self.draw_text_in_info_box('R', 5, bar_y+bar[1], 20, [255, 255, 255])
+                self.draw_text_in_info_box('RE', 5, bar_y+bar[1], 20)
                 rr, rg, rb = blob.visual_input['right_eye']
                 if rr > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('red'), \
@@ -280,49 +278,104 @@ class PyGameView(object):
                     [bar_input_x, bar_y,        bar[0], 3*bar[1]], 1)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y+bar[1], bar[0], bar[1]], 1)
+                bar_y += 40
+
+                # hearing
+                self.draw_text_in_info_box('H', 5, bar_y, 20)
+                pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
+                    [bar_input_x, bar_y, blob.noise_heard*bar[0], bar[1]])
+                pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
+                    [bar_input_x, bar_y, bar[0], bar[1]], 1)
+                bar_y += 20
 
                 # food smell
-                bar_y = 110
-                self.draw_text_in_info_box('FS', 5, bar_y, 20, [255, 255, 255])
-                pygame.draw.rect(self.info_box_surface, pygame.Color('orange'), \
+                self.draw_text_in_info_box('FS', 5, bar_y, 20)
+                pygame.draw.rect(self.info_box_surface, FOOD_COLOR, \
                     [bar_input_x, bar_y, blob.food_smell*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, bar[0], bar[1]], 1)
+                bar_y += 20
 
                 # blob smell
-                bar_y = 130
-                self.draw_text_in_info_box('BS', 5, bar_y, 20, [255, 255, 255])
+                self.draw_text_in_info_box('BS', 5, bar_y, 20)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, blob.blob_smell*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, bar[0], bar[1]], 1)
+                bar_y += 20
 
+                # draw input key
+                if self.first_blob_drawing:
+                    self.draw_text_in_info_box("INPUTS:", 15, 200, 20)
+                    for n, line in enumerate(KEY_INPUTS):
+                        self.draw_text_in_info_box(line, 15, 205+14*(n+1), 20)                
 
                 # draw outpus of neural network
                 bar_output_x = 320
 
                 # left wheel rotation
                 bar_y = 60
-                self.draw_text_in_info_box('LW', bar_output_x+bar[0]+10, bar_y, 20, [255, 255, 255])
+                self.draw_text_in_info_box('LW', bar_output_x+bar[0]+10, bar_y, 20)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_output_x, bar_y, (blob.left_wheel_rotation/MAX_WHEEL_ROTATION)*bar[0], bar[1]])
+                    [bar_output_x, bar_y, (abs(blob.left_wheel_rotation)/MAX_WHEEL_ROTATION)*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_output_x, bar_y, bar[0], bar[1]], 1)
+                bar_y += 20
 
                 # right wheel rotation
-                bar_y = 80
-                self.draw_text_in_info_box('RW', bar_output_x+bar[0]+10, bar_y, 20, [255, 255, 255])
+                self.draw_text_in_info_box('RW', bar_output_x+bar[0]+10, bar_y, 20)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_output_x, bar_y, (blob.right_wheel_rotation/MAX_WHEEL_ROTATION)*bar[0], bar[1]])
+                    [bar_output_x, bar_y, (abs(blob.right_wheel_rotation)/MAX_WHEEL_ROTATION)*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_output_x, bar_y, bar[0], bar[1]], 1)
+                bar_y += 20
 
+
+                # draw output key
+                if self.first_blob_drawing:
+                    self.first_blob_drawing = False
+                    self.draw_text_in_info_box("OUTPUTS:", 220, 200, 20)
+                    for n, line in enumerate(KEY_OUTPUTS):
+                        self.draw_text_in_info_box(line, 220, 205+14*(n+1), 20)
+
+                # reset first_food_drawing
+                self.first_food_drawing = True
+                
 
             elif self.model.selected_circle.__class__.__name__ == 'Food':
-                pass#print 'foooood'
-            
+                #print 'foooood'
 
+                # fill background
+                #pygame.draw.rect(self.info_box_surface, pygame.Color('black'), \
+                #    [0, 0, INFO_BOX_SIZE[0], 190])
+                self.info_box_surface.fill(pygame.Color('black'))
 
+                # draw line that separates info box from simulation
+                pygame.draw.line( \
+                    self.info_box_surface, \
+                    pygame.Color('white'), \
+                    (0,0), (0,INFO_BOX_SIZE[1]))
+
+            # reset first_blob_drawing
+            self.first_blob_drawing = True                
+
+        # else nothing is selected
+        else:
+
+            # so just clear the whole screen
+            # fill entire background
+            self.info_box_surface.fill(pygame.Color('black'))
+
+            # draw line that separates info box from simulation
+            pygame.draw.line( \
+                self.info_box_surface, \
+                pygame.Color('white'), \
+                (0,0), (0,INFO_BOX_SIZE[1]))
+
+            # reset first_blob_drawing and first_food_drawing
+            # to True for when next circle is selected
+            self.first_blob_drawing = True
+            self.first_food_drawing = True
 
 class Model(object):
     """
@@ -367,7 +420,10 @@ class Model(object):
         """
 
         for blob in self.blobs:
-            blob.update(self)
+            blob.update_inputs(self)
+        for blob in self.blobs:
+            blob.update_outputs(self)
+
 
         # If all blobs are dead, start new cycle
         if self.blobs == []:
@@ -387,7 +443,6 @@ class Model(object):
         for i in range(0, BLOB_NUM):
             new_NN = NN(parents_NN=top_scoring)
             self.blobs.append(Blob(self, new_NN))
-
 
 class PyGameKeyboardController(object):
     """
