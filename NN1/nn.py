@@ -18,15 +18,22 @@ class NN(object):
             parents_NN (list): list of neural networks (classes)
         """
 
-        self.inputLayerSize = 9
-        self.outputLayerSize = 2
-        self.hiddenLayerSize = 10
+        self.inputLayerSize  = INPUT_LAYER_SIZE
+        self.hiddenLayerSize = HIDDEN_LAYER_SIZE
+        self.outputLayerSize = OUTPUT_LAYER_SIZE
+
+        self.hiddenLayer = [0] * self.hiddenLayerSize
 
         if parents_NN is not None:
             self.W1, self.W2 = self.get_recombine(parents_NN)
+
         else:
-            self.W1 = np.random.uniform(-1, 1, (self.inputLayerSize, self.hiddenLayerSize))
-            self.W2 = np.random.uniform(-1, 1, (self.hiddenLayerSize, self.outputLayerSize))
+
+            self.W1 = np.random.uniform(-MAX_ABS_WEIGHT, MAX_ABS_WEIGHT, \
+                (self.inputLayerSize, self.hiddenLayerSize))
+
+            self.W2 = np.random.uniform(-MAX_ABS_WEIGHT, MAX_ABS_WEIGHT, \
+                (self.hiddenLayerSize, self.outputLayerSize))
 
 
     def get_recombine(self, parents_NN):
@@ -83,6 +90,7 @@ class NN(object):
         # input and output to level 2 (nodes)
         z2 = z1.dot(self.W1)
         a2 = self.sigmoid(z2)
+        self.hiddenLayer = a2
         # input and output to level 3 (results)
         z3 = a2.dot(self.W2)
         a3 = self.sigmoid(z3)

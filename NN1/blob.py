@@ -13,7 +13,7 @@ class Blob(ParentSprite):
     """
 
 
-    def __init__(self, model, nn=None):
+    def __init__(self, model, col, nn=None):
         """ 
         Initialize blob by inheriting ParentSprite and assigning attributes
 
@@ -41,7 +41,7 @@ class Blob(ParentSprite):
 
         ######################
 
-        self.color = np.random.randint(256, size=3)
+        self.color = col #np.random.randint(256, size=3)
 
         self.left_wheel_rotation  = 0.0
         self.right_wheel_rotation = 0.0
@@ -60,6 +60,8 @@ class Blob(ParentSprite):
         # sound input variables
         self.noise_made  = 0.0 # represents how much noise this bot is making
         self.noise_heard = 0.0 # represents how much noise the other bots are making
+
+        self.input_list = []
 
         ######################
 
@@ -85,12 +87,12 @@ class Blob(ParentSprite):
     ###################### INPUT ##############################
 
     # update the inputs of the nn w/ the current data
-    def update_inputs(self, model):
+    def update_inputs(self, model, controller):
         
-        self.update_sight(model)
+        self.update_sight(model, controller)
         self.update_hearing(model)
         self.update_smell(model)
-        if self == model.selected_circle: self.print_input()
+        #if self == model.selected_circle: self.print_input()
     def print_input(self):
         self.print_energy()
         self.print_sight()
@@ -99,7 +101,7 @@ class Blob(ParentSprite):
         print ''
 
     # input sight
-    def update_sight(self, model):
+    def update_sight(self, model, controller):
 
 
         # LEFT EYE
@@ -107,7 +109,7 @@ class Blob(ParentSprite):
         self.update_eye_data('left_eye')
 
         # get the arcs in the left field of view
-        self.left_arcs = self.update_visual_field(model.blobs + model.foods, 'left_eye')
+        self.left_arcs = self.update_visual_field(model.blobs + model.foods, 'left_eye', controller)
         
         # get rgb for left eye
         self.update_eye_rgb(self.left_arcs, 'left_eye')
@@ -118,7 +120,7 @@ class Blob(ParentSprite):
         self.update_eye_data('right_eye')
 
         # get the arcs in the right field of view
-        self.right_arcs = self.update_visual_field(model.blobs + model.foods, 'right_eye')
+        self.right_arcs = self.update_visual_field(model.blobs + model.foods, 'right_eye', controller)
         
         # get rgb for right eye
         self.update_eye_rgb(self.right_arcs, 'right_eye')
@@ -147,7 +149,7 @@ class Blob(ParentSprite):
         self.eye_data[eye]['right_peripheral'] = \
             (eye_pos[0] + vis_dist * np.cos(theta + e*eye_sep + periph_angle), \
              eye_pos[1] + vis_dist * np.sin(theta + e*eye_sep + periph_angle))
-    def update_visual_field(self, circles, eye):
+    def update_visual_field(self, circles, eye, controller):
         """
         this function finds the objects that are in 
         the blob's field of view and then creates and
@@ -164,8 +166,10 @@ class Blob(ParentSprite):
         'right_side':right_peripheral,
         'd':MAX_VISABLE_DISTANCE, # distance from eye to arc
         'color':[255,255,255,VISION_OPAQUENESS], # opaque white
-        'empty':True # if the arc represents empty space or a circle
+        'circle':None # if the arc represents empty space or a circle
         }]
+
+        # print '\n%s' % self
 
         for c in circles:
 
@@ -207,6 +211,10 @@ class Blob(ParentSprite):
                     # if p_right is on the right side of left periferal
                     if self.right_side(eye_pos, left_peripheral, p_right):
 
+                        # IF WE'VE GOTTEN TO THIS POINT THEN THE CIRCLE c 
+                        # IS IN THE VISUAL FIELD OF THE eye
+                        #print '%s is in visual field' % c
+
                         col = [c.color[0], c.color[1], c.color[2], VISION_OPAQUENESS]
                         first_arc, last_arc = True, False # first and last arc in the iteration
                         original_arcs = []
@@ -216,124 +224,129 @@ class Blob(ParentSprite):
 
                             i += 1
                             #print 'i=%d, len(arcs)=%d' % (i, len(arcs))
-                            if arcs[i]['color'] == col and arcs[i]['d'] == d2: i += 1
-                            if i > 0: first_arc = False
-                            if i == len(arcs)-1: last_arc = True
+                            #if arcs[i]['color'] == col and arcs[i]['d'] == d2: i += 1
+                            try:
+                                
+                                if arcs[i]['circle'] == c: i += 1
+                                
+                                if first_arc and i > 0: first_arc = False
+                                if i == len(original_arcs)-1: last_arc = True
 
-                            a_left, a_right = a['left_side'], a['right_side']
+                                a_left, a_right = a['left_side'], a['right_side']
 
-                            LPLL = self.left_side(eye_pos, a_left, p_left)
-                            LPRL = not LPLL
-                            LPLR = self.left_side(eye_pos, a_right, p_left)
-                            LPRR = not LPLR
-                            RPLL = self.left_side(eye_pos, a_left, p_right)
-                            RPRL = not RPLL
-                            RPLR = self.left_side(eye_pos, a_right, p_right)
-                            RPRR = not RPLR
+                                LPLL = self.left_side(eye_pos, a_left, p_left)
+                                LPRL = not LPLL
+                                LPLR = self.left_side(eye_pos, a_right, p_left)
+                                LPRR = not LPLR
+                                RPLL = self.left_side(eye_pos, a_left, p_right)
+                                RPRL = not RPLL
+                                RPLR = self.left_side(eye_pos, a_right, p_right)
+                                RPRR = not RPLR
 
-                            a_d = a['d']
-                            closer = d - cr < a_d
+                                a_d = a['d']
+                                closer = d - cr < a_d
 
-                            if closer:
-                                #print '%s is closer than arc[%d]:%s' % (col, i, arcs[i]['color'])
-                                #print 'LPLL=%s, LPRL=%s, LPLR=%s, LPRR=%s, RPLL=%s, RPRL=%s, RPLR=%s, RPRR=%s' \
-                                #% (LPLL, LPRL, LPLR, LPRR, RPLL, RPRL, RPLR, RPRR)
+                                if closer:
+                                    #print '%s is closer than arc[%d]:%s' % (col, i, arcs[i]['color'])
+                                    #print 'LPLL=%s, LPRL=%s, LPLR=%s, LPRR=%s, RPLL=%s, RPRL=%s, RPLR=%s, RPRR=%s' \
+                                    #% (LPLL, LPRL, LPLR, LPRR, RPLL, RPRL, RPLR, RPRR)
 
-                                if LPLL and RPLL or LPRR and RPRR:
-                                    # senario where none of arc a is not overlapped by c
-                                    #print '%s none of arc[%d]:%s' % (col, i, arcs[i]['color'])
-                                    pass
+                                    if LPLL and RPLL or LPRR and RPRR:
+                                        # senario where none of arc a is not overlapped by c
+                                        #print '%s none of arc[%d]:%s' % (col, i, arcs[i]['color'])
+                                        pass
 
-                                elif LPRL and LPLR and RPRR:
-                                    # senario where the right side of arc a is overlapped by c
-                                    #print '%s right of arc[%d]:%s' % (col, i, arcs[i]['color'])
+                                    elif LPRL and LPLR and RPRR:
+                                        # senario where the right side of arc a is overlapped by c
+                                        #print '%s right of arc[%d]:%s' % (col, i, arcs[i]['color'])
 
-                                    # so move arc a's right side in
-                                    arcs[i]['right_side'] = p_left
+                                        # so move arc a's right side in
+                                        arcs[i]['right_side'] = p_left
 
-                                    # and insert it starting at the right side of arc a
-                                    arcs.insert(i+1, {
-                                        'left_side':p_left,
-                                        'right_side':a_right,
-                                        'd':d2,
-                                        'color':col,
-                                        'empty':False
-                                    })
-
-
-                                elif LPRL and LPLR and RPRL and RPLR:
-                                    # senario where the middle of arc a is overlapped by c
-                                    #print '%s middle of arc[%d]:%s' % (col, i, arcs[i]['color'])
-
-                                    # so put c in the middle
-                                    arcs[i]['right_side'] = p_left
-                                    arcs.insert(i+1, {
-                                        'left_side':p_left,
-                                        'right_side':p_right,
-                                        'd':d2,
-                                        'color':col,
-                                        'empty':False
-                                    })
-                                    arcs.insert(i+2, {
-                                        'left_side':p_right,
-                                        'right_side':a_right,
-                                        'd':a_d,
-                                        'color':arcs[i]['color'],
-                                        'empty':arcs[i]['empty']
-                                    })
-
-                                elif LPLL and RPRL and RPLR:
-                                    # senario where the left side of arc a is overlapped by c
-                                    #print '%s left of arc[%d]:%s' % (col, i, arcs[i]['color'])
-
-                                    # so move arc a's left side in
-                                    arcs[i]['left_side'] = p_right
-
-                                    # if arc a is not the first arc and 
-                                    # the previous arc is from the same circle
-                                    if not first_arc and \
-                                    arcs[i-1]['color'] == col and arcs[i-1]['d'] == d2:
-
-                                        # then this is a continuation of the previous arc
-                                        # so just update its right side
-                                        arcs[i-1]['right_side'] = p_right
-
-                                    # else, this is a new arc
-                                    else:
-
-                                        # so insert it starting at the left side of arc a
+                                        # and insert it starting at the right side of arc a
                                         arcs.insert(i+1, {
-                                            'left_side':a_left,
-                                            'right_side':p_right,
+                                            'left_side':p_left,
+                                            'right_side':a_right,
                                             'd':d2,
                                             'color':col,
-                                            'empty':False
+                                            'circle':c
                                         })
 
 
-                                elif LPLL and RPRR:
-                                    # senario where all of arc a is overlapped by c
-                                    #print '%s all of arc[%d]:%s' % (col, i, arcs[i]['color'])
+                                    elif LPRL and LPLR and RPRL and RPLR:
+                                        # senario where the middle of arc a is overlapped by c
+                                        #print '%s middle of arc[%d]:%s' % (col, i, arcs[i]['color'])
 
-                                    # if arc a is not the first arc and 
-                                    # the previous arc is from the same circle
-                                    if not first_arc and \
-                                    arcs[i-1]['color'] == col and arcs[i-1]['d'] == d2:
+                                        # so put c in the middle
+                                        arcs[i]['right_side'] = p_left
+                                        arcs.insert(i+1, {
+                                            'left_side':p_left,
+                                            'right_side':p_right,
+                                            'd':d2,
+                                            'color':col,
+                                            'circle':c
+                                        })
+                                        arcs.insert(i+2, {
+                                            'left_side':p_right,
+                                            'right_side':a_right,
+                                            'd':a_d,
+                                            'color':arcs[i]['color'],
+                                            'circle':arcs[i]['circle']
+                                        })
 
-                                        # then this is a continuation of the previous arc
-                                        # so just update its right side
-                                        arcs[i-1]['right_side'] = a_right
-                                        
-                                        # and remove this arc
-                                        del arcs[i]
-                                        i -= 1
+                                    elif LPLL and RPRL and RPLR:
+                                        # senario where the left side of arc a is overlapped by c
+                                        #print '%s left of arc[%d]:%s' % (col, i, arcs[i]['color'])
 
-                                    # else, this is a new arc
-                                    else:
-                                        arcs[i]['d'] = d2
-                                        arcs[i]['color'] = col
-                                        arcs[i]['empty'] = False
+                                        # so move arc a's left side in
+                                        arcs[i]['left_side'] = p_right
 
+                                        # if arc a is not the first arc and 
+                                        # the previous arc is from the same circle
+                                        if not first_arc and arcs[i-1]['circle'] == c:
+
+                                            # then this is a continuation of the previous arc
+                                            # so just update its right side
+                                            arcs[i-1]['right_side'] = p_right
+
+                                        # else, this is a new arc
+                                        else:
+
+                                            # so insert it starting at the left side of arc a
+                                            arcs.insert(i+1, {
+                                                'left_side':a_left,
+                                                'right_side':p_right,
+                                                'd':d2,
+                                                'color':col,
+                                                'circle':c
+                                            })
+
+
+                                    elif LPLL and RPRR:
+                                        # senario where all of arc a is overlapped by c
+                                        #print '%s all of arc[%d]:%s' % (col, i, arcs[i]['color'])
+
+                                        # if arc a is not the first arc and 
+                                        # the previous arc is from the same circle
+                                        if not first_arc and arcs[i-1]['circle'] == c:
+
+                                            # then this is a continuation of the previous arc
+                                            # so just update its right side
+                                            arcs[i-1]['right_side'] = a_right
+                                            
+                                            # and remove this arc
+                                            del arcs[i]
+                                            i -= 1
+
+                                        # else, this is a new arc
+                                        else:
+                                            arcs[i]['d'] = d2
+                                            arcs[i]['color'] = col
+                                            arcs[i]['circle'] = c
+
+                            except Exception:
+                                print 'i=%d, len(arcs)=%d\neye = %s, blob = %s\n' % (i, len(arcs), eye, self)
+                                controller.paused = True
 
         #for a in arcs: print a
         #print ''
@@ -357,7 +370,7 @@ class Blob(ParentSprite):
         r,g,b = 0.0,0.0,0.0
         for a in arcs_in_view:
 
-            if not a['empty']:
+            if a['circle'] != None:
 
                 left_angle  = np.arctan2(ey - a['left_side'][1],  ex - a['left_side'][0])
                 right_angle = np.arctan2(ey - a['right_side'][1], ex - a['right_side'][0])
@@ -451,6 +464,8 @@ class Blob(ParentSprite):
         self.energy -= (np.abs(velocity) + np.abs(angular_velocity) + ENERGY_LOSS_CONSTANT)
         if self.energy < 0:
             self.alive = False
+            #if model.selected_circle == self:
+            #    model.selected_circle == None
             self.score_int = self.score()
             model.vip_genes.append((self.score_int, self.nn))
 
@@ -470,7 +485,7 @@ class Blob(ParentSprite):
 
         # get current wheel rotations based on neural network
         [self.left_wheel_rotation, self.right_wheel_rotation] = self.process_neural_net()
-        if self == model.selected_circle: self.print_output()
+        #if self == model.selected_circle: self.print_output()
 
         # update position and energy level based on neural network output
         old_pos   = (self.center_x, self.center_y)
@@ -620,7 +635,7 @@ class Blob(ParentSprite):
 
     def process_neural_net(self):
         """
-        use blob's neural network to determine velocity and angular velocity
+        use blob's neural network to determine wheel rotation
 
         Returns:
             list containing distance and angle magnitudes
@@ -629,16 +644,14 @@ class Blob(ParentSprite):
         #blob_target_input = 0 if self.target_blob == self else 1 
         #food_target_input = 0 if self.target_food == self else 1
 
-        #preprocess neural net inputs
-        energy_input = self.energy / MAX_ENERGY # scale engery between 1 through 0
-
         #create array containing neural net inputs
-        env = np.array( \
+        self.input_list = np.array( \
+            [self.energy / MAX_ENERGY] + \
             self.visual_input['left_eye'] + \
             self.visual_input['right_eye'] + \
-            [energy_input, self.blob_smell, self.food_smell])
+            [self.noise_heard, self.food_smell, self.blob_smell])
 
-        return self.nn.process(env)
+        return self.nn.process(self.input_list)
     def print_output(self):
         self.print_wheel_rotation()
         print ''
@@ -673,18 +686,32 @@ class Blob(ParentSprite):
                 model.foods.append(Food(model))
 
                 # create another blob with a similar nn
-                model.blobs.append(Blob(model, NN([(1, self.nn)])))
+                self.reproduce_asexually(model)
 
                 # kill lowest energy blob if there are more than BLOB_NUM blobs
-                #if len(model.blobs) > BLOB_NUM:
-                #    energy_list = []
-                #    for blob in model.blobs:
-                #        energy_list.append(blob.energy)
-                #    del model.blobs[np.argmin(energy_list)]
+                if len(model.blobs) > BLOB_NUM:
+                    energy_list = []
+                    for blob in model.blobs:
+                        energy_list.append(blob.energy)
+                    del model.blobs[np.argmin(energy_list)]
 
     ############################################################
 
     ###################### OTHER ###############################
+
+    def reproduce_asexually(self, model):
+
+        new_col = [0] * 3
+        for i in range(3):
+            change_in_rgb = np.random.normal(0, 10)
+            if change_in_rgb > 50:  change_in_rgb = 50
+            if change_in_rgb < -50: change_in_rgb = -50
+            new_c = self.color[i] + change_in_rgb
+            if new_c > 255: new_c = 255
+            if new_c < 0:   new_c = 0        
+            new_col[i] = int(new_c)
+
+        model.blobs.append(Blob(model, new_col, NN([(1, self.nn)])))
 
     def score(self):
         """

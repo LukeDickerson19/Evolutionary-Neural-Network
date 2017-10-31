@@ -1,10 +1,10 @@
 import numpy as np
 import pygame
 
-SCREEN_SIZE = (800, 500)
+SCREEN_SIZE = (600, 400)
 INFO_BOX_SIZE = (400, SCREEN_SIZE[1])
-FOOD_NUM = 7
-BLOB_NUM = 10
+FOOD_NUM = 10
+BLOB_NUM = 4
 NUM_PARENTS = 2
 MUTATION_RATE = 0.2
 MUTATION_AMOUNT = 0.05
@@ -26,6 +26,12 @@ NOISE_AMPLIFIER = 20 # used to amplify how much noise a blob makes from its move
 FOOD_RADIUS = 9
 FOOD_COLOR = pygame.Color('red')
 
+# neural network constants
+INPUT_LAYER_SIZE  = 10
+HIDDEN_LAYER_SIZE = 11
+OUTPUT_LAYER_SIZE = 2
+MAX_ABS_WEIGHT = 2 # maximum absolute value of the weight of a connectionin the neural network
+
 
 CONTROLS = [
     "Keyboard controls:",
@@ -33,8 +39,6 @@ CONTROLS = [
     "    d = Print NN weights to console",
     "    k = Kill all (new generation created)",
     "    s = Toggle simulation drawing",
-    "    . = Speed up simulation",
-    "    , = Slow down simulation",
     "    h = Toggle help",
     "    a = Toggle sight"
 ]
