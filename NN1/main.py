@@ -33,14 +33,6 @@ import os
                     long span of time (a few seconds) to get an idea of what that 
                     neuron goes through
 
-                    also maybe make it so if you hover your mouse over that neuron 
-                    it displays its current value
-
-                        if mouse coordinates over neuron
-                            draw a black rectange next to neuron with its current
-                            value written in text inside the rectangle
-
-
 
             maybe make nn display background light blue:
                 so B in RGB is visable
@@ -122,8 +114,6 @@ import os
             also research how recurrent neural networks work
 
         LONG TERM (eventually):
-
-
 
     SOURCES:
 
@@ -371,21 +361,29 @@ class PyGameView(object):
                 # draw labels for everything
                 self.draw_labels(input_x, input_y, hidden_x, hidden_y, output_x, output_y)
 
+                selected_neuron = False
 
                 # DRAW INPUT LAYER NEURONS
                 for i in blob.input_list:
+                    selected_neuron = selected_neuron or \
                     self.draw_neuron(input_x, input_y, i)
                     input_y += 25
 
                 # DRAW HIDDEN LAYER NEURONS
                 for h in blob.nn.hiddenLayer:
+                    selected_neuron = selected_neuron or \
                     self.draw_neuron(hidden_x, hidden_y, h)
                     hidden_y += 25
 
                 # DRAW OUTPUT LAYER NEURONS
                 for o in [blob.left_wheel_rotation, blob.right_wheel_rotation]:
+                    selected_neuron = selected_neuron or \
                     self.draw_neuron(output_x, output_y, o)
                     output_y += 60
+
+                if not selected_neuron:
+                    pygame.draw.rect(self.info_box_surface, pygame.Color('black'), \
+                    [320, 250, 70, 20])
 
                 # reset other options
                 self.first_food_drawing = True
@@ -598,6 +596,7 @@ class PyGameView(object):
 
     def draw_neuron(self, x, y, value):
 
+        # draw the circle for the neuron
         col = int(255.0 * (value + 1.0) / 2.0)
         if col > 255: col = 255
         if col < 0: col = 0
@@ -608,6 +607,17 @@ class PyGameView(object):
         #radius = int((max_radius - min_radius) * abs(value) + min_radius)
         #if radius > max_radius: radius = int(max_radius)
         pygame.draw.circle(self.info_box_surface, [col,col,col], (x,y), radius)
+
+        # draw the rectangle with the neurons value in it
+        # if the mouse is over the displayed neuron
+        if np.sqrt((self.mouse_pos[0] - (x+SCREEN_SIZE[0]))**2 + \
+                   (self.mouse_pos[1] - y)**2) <= 7.0:
+
+            pygame.draw.rect(self.info_box_surface, [100,100,100], \
+                [320, 250, 70, 20])
+            self.draw_text_in_info_box('%.3f' % (value), 320, 250, 34, pygame.Color('black'))
+            return True
+        return False
     def draw_neuron_outline(self, x, y):
         radius = 8
         pygame.draw.circle(self.info_box_surface, pygame.Color('white'), (x,y), radius)
@@ -680,7 +690,6 @@ class PyGameView(object):
             self.draw_text_in_info_box("OUTPUTS:", 220, 290, 20)
             for n, line in enumerate(KEY_OUTPUTS):
                 self.draw_text_in_info_box(line, 220, 295+14*(n+1), 20)
-
 
 class Model(object):
     """
