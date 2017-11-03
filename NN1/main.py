@@ -15,6 +15,10 @@ import os
 
         SHORT TERM (now):
 
+            output: number of generations. graph at every time step
+                    Average life span, standard deviation of life span
+
+            vision: first step look at everything in sight, then only look at perimeter
 
             gunna have to change up neural network in some way
 
