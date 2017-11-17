@@ -3,8 +3,8 @@ import pygame
 
 SCREEN_SIZE = (600, 400)
 INFO_BOX_SIZE = (400, SCREEN_SIZE[1])
-FOOD_NUM = 10
-BLOB_NUM = 4
+FOOD_NUM = 4
+BLOB_NUM = 6
 NUM_PARENTS = 2
 MUTATION_RATE = 0.2
 MUTATION_AMOUNT = 0.05
@@ -30,7 +30,7 @@ FOOD_COLOR = pygame.Color('red')
 INPUT_LAYER_SIZE  = 10
 HIDDEN_LAYER_SIZE = 11
 OUTPUT_LAYER_SIZE = 2
-MAX_ABS_WEIGHT = 2 # maximum absolute value of the weight of a connectionin the neural network
+MAX_ABS_WEIGHT = 2 # maximum absolute value of the weight of a connection in the neural network
 
 
 CONTROLS = [
@@ -40,7 +40,8 @@ CONTROLS = [
     "    k = Kill all (new generation created)",
     "    s = Toggle simulation drawing",
     "    h = Toggle help",
-    "    a = Toggle sight"
+    "    l = toggle left eye field of view of selected blob",
+    "    r = toggle right eye field of view of selected blob"
 ]
 
 KEY_INPUTS = [

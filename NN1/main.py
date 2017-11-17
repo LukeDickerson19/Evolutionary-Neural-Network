@@ -8,13 +8,40 @@ from food import *
 from blob import *
 import os
 
-
 ''' NOTES:
+
+    GOOGLE CHALLENGES:
+
+        google.com/foobar
+        forbar.withgoogle.com
+
+    LLE:
+
+        free lancers
+
+            work together to complete coding challenges
+            gotta use api of companies they work for
+                students:
+                    free lancers that are tyring to become employees of companies
+            like a multiplayer video-game
+
+                challenges could last 15-minutes, or maybe it's one hour
+
+                give it a crazy cool campapgn
+
+
+        just i have no idea what your talking about 
+
+        jack of all trades
+
+        employees to train
+        connect employees with homeless
 
     TO DO:
 
         SHORT TERM (now):
 
+            check out: replika app - AI that talks to you
 
             gunna have to change up neural network in some way
 
@@ -22,11 +49,17 @@ import os
                 any sort of "intelligent" behavior is because their inputs are
                 usually gray
 
-                    might need to find a way to make them more extreme
+                    also why is there no bias in the equation?
+
+                    also why is a neuron's output literally just the 
+                    the squashed sum of its inputs? what about the
+                    activation function?
+
+                    might need to find a way to make the inputs more extreme
                         particularly the sight ones
                         but definately test them all
 
-                        once thats done messing with the MAX_ABS_WEIGHT would
+                        once thats done, messing with the MAX_ABS_WEIGHT would
                         be a good idea too
 
                     maybe print out some sort of average and std dev values over a
@@ -34,20 +67,17 @@ import os
                     neuron goes through
 
 
-            maybe make nn display background light blue:
-                so B in RGB is visable
-                and now you can make weights black and white
-
-
 
             gotta figure out how to run simulation:
 
-                do we want to remove worst blob when one blob
-                eats food
+                is there a way to control the number of blobs currently 
+                alive by controlling how they reproduce and how food spawns?
 
-                do we want the blobs to reproduce when they eat food
+                    do we want to remove the worst blob when one blob
+                    eats food?
 
-                how can we make it run fast
+                    do we want the blobs to reproduce when they eat food?
+
 
                 go through program and make it so it can draw faster
 
@@ -58,18 +88,6 @@ import os
 
 
 
-            figure out that error that occationaly occurs
-                in processing the visual field
-                    take a picture of the error message
-                    it says something like array index out of bounds
-                    in the arc array for the visual field in the blob.py file
-
-            if this works (can run fast for long time with no errors):
-                don't need to look into gpu cloud services anymore
-                gotta figure out how they did kindof recurrent neural net?
-                    don't need to understand their whole code
-                    just the neural net part
-
             check out (gpu cloud service):
 
                 aws
@@ -79,6 +97,7 @@ import os
                 check student teirs
 
 
+
             need to make input sensors more sensitive
             the nn isn't going to output much ever
             if its inputs are always close to zero
@@ -86,6 +105,12 @@ import os
                 consider sqashing the eye rgb inputs
 
         MEDIUM TERM (later):
+
+            things to plot over time (t = iteration number, not time itself):
+
+                number of blobs
+                number of food
+
 
             look at the first iteration of source 1:
 
@@ -213,7 +238,7 @@ class PyGameView(object):
         if model.show_controls:
             for n, line in enumerate(CONTROLS):
                 self.draw_text_in_simulation(line, 10, 50+14*n, 20)
-        else: self.draw_text_in_simulation("h = toggle help", 30, 1, 20)
+        #else: self.draw_text_in_simulation("h = toggle help", 30, 1, 20)
 
         # draw food
         for food in self.model.foods:
@@ -240,18 +265,13 @@ class PyGameView(object):
                 #     self.simulation_surface, pygame.Color('white'),
                 #     blob.left_eye_pos, 2)
 
-                # sight lines are toggleable
-                if model.draw_sight:
-
-                    # draw left and right field of vision
-                    if blob != model.selected_circle:
-                        self.draw_visual_field(blob, 'left_eye')
-                        self.draw_visual_field(blob, 'right_eye')
 
         # draw vision of the selected blob
         blob = self.model.selected_circle
         if blob != None and blob.__class__.__name__ == 'Blob':
+            if model.draw_left:
                 self.draw_visual_field(blob, 'left_eye')
+            if model.draw_right:
                 self.draw_visual_field(blob, 'right_eye')
 
         # draw mouse selector
@@ -697,7 +717,6 @@ class Model(object):
     parameters
     """
 
-
     def __init__(self, width, height):
         """
         initialize model, environment, and default keyboard controller states
@@ -712,7 +731,8 @@ class Model(object):
         self.show_gen = True # show generation number
 
         self.show_controls = False # controls toggle
-        self.draw_sight = False # draw sight lines
+        self.draw_left  = False # draw left eye field of view of selected circle
+        self.draw_right = False # draw right eye field of view of selected circle
         self.selected_circle = None # blob or food selected for display in the info box
         #self.sleep_time = .005 #seconds between frames
 
@@ -726,7 +746,6 @@ class Model(object):
         # population progressions
         self.population = 0
         self.vip_genes = []
-
 
     def update(self, controller):
         """ 
@@ -744,7 +763,6 @@ class Model(object):
         if self.blobs == []:
             self.create_population(NUM_PARENTS)
             self.vip_genes = []
-
 
     def create_population(self, num_winners=2):
         """ 
@@ -833,7 +851,8 @@ class PyGameKeyboardController(object):
             model.show_gen = not model.show_gen
             if not model.show_gen:
                 model.show_controls   = False
-                model.draw_sight      = False
+                model.draw_left       = False
+                model.draw_right      = False
                 model.selected_circle = None
 
         #elif event.key == pygame.K_PERIOD:
@@ -842,8 +861,10 @@ class PyGameKeyboardController(object):
         #    model.sleep_time += 0.005
         elif event.key == pygame.K_h:
             model.show_controls = not model.show_controls
-        elif event.key == pygame.K_a:
-            model.draw_sight = not model.draw_sight
+        elif event.key == pygame.K_l:
+            model.draw_left = not model.draw_left
+        elif event.key == pygame.K_r:
+            model.draw_right = not model.draw_right
         return True
 
 
