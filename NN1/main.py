@@ -41,7 +41,14 @@ import os
 
         SHORT TERM (now):
 
+<<<<<<< HEAD
             check out: replika app - AI that talks to you
+=======
+            output: number of generations. graph at every time step
+                    Average life span, standard deviation of life span
+
+            vision: first step look at everything in sight, then only look at perimeter
+>>>>>>> 78a2ca2bb37ea98abcedba0561d1b9cdbbc1d915
 
             gunna have to change up neural network in some way
 
