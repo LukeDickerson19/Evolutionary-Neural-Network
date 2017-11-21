@@ -13,7 +13,7 @@ class Blob(ParentSprite):
     """
 
 
-    def __init__(self, model, col, nn=None):
+    def __init__(self, model, col, nn=None, parent_x=None, parent_y=None, parent_angle=None):
         """ 
         Initialize blob by inheriting ParentSprite and assigning attributes
 
@@ -22,18 +22,35 @@ class Blob(ParentSprite):
         """
         super(Blob, self).__init__() # values are not needed
         self.radius = BLOB_BODY_RADIUS
+
+        if parent_angle != None: self.angle = parent_angle
+        else: self.angle = random.uniform(0,2*np.pi) # direction the blob is facing
+
         overlapped = True
         circles = model.blobs + model.foods
+        angle = self.angle - np.pi # direction its born relative to it parent
+        angle2 = 0.0
+        d_angle = np.pi / 20
+        birth_distance = BLOB_BODY_RADIUS * 3 # distance baby is born from parent
         while overlapped:
-            self.center_x = random.randint(0, SCREEN_SIZE[0])
-            self.center_y = random.randint(0, SCREEN_SIZE[1])
+            if parent_x != None and parent_y != None:
+                self.center_x = parent_x + birth_distance * np.cos(angle + angle2)
+                self.center_y = parent_y + birth_distance * np.sin(angle + angle2)
+                angle2 += d_angle
+                if angle2 > 2*np.pi: parent_x = None
+            else:
+                self.center_x = random.randint(0, SCREEN_SIZE[0])
+                self.center_y = random.randint(0, SCREEN_SIZE[1])
             overlapped = False
             for c in circles:
                 if self.get_dist(c) < c.radius + self.radius:
                     overlapped = True
                     break
+            if self.center_x > SCREEN_SIZE[0] or self.center_x < 0 or \
+                self.center_y > SCREEN_SIZE[1] or self.center_y < 0:
+                overlapped = True
         self.int_center = int(self.center_x), int(self.center_y)
-        self.angle = random.uniform(0,2*np.pi)
+        
         self.energy = MAX_ENERGY
         self.alive = True
         self.food_eaten = 0
@@ -79,7 +96,7 @@ class Blob(ParentSprite):
 
         # Neural Network stuff here:
         if nn is not None:
-            self.nn = NN(((1, nn),))
+            self.nn = NN(parents_NN=nn)
         else:
             self.nn = NN()
 
@@ -467,7 +484,7 @@ class Blob(ParentSprite):
             #if model.selected_circle == self:
             #    model.selected_circle == None
             self.score_int = self.score()
-            model.vip_genes.append((self.score_int, self.nn))
+            model.vip_genes.append((self.score_int, self.nn, self.color))
 
             model.blobs.remove(self)
     def print_energy(self):
@@ -589,17 +606,23 @@ class Blob(ParentSprite):
                         overlaps_with_another_blob = True
                         break
 
-            # if there is an overlap
-            if overlaps_with_another_blob:
+            # # if there is an overlap
+            # if overlaps_with_another_blob:
 
-                # reverse its change in position
-                new_x, new_y = 2*self.center_x - new_x, 2*self.center_y - new_y
+            #     # reverse its change in position
+            #     new_x, new_y = 2*self.center_x - new_x, 2*self.center_y - new_y
 
-            # don't let blobs go out of bounds
-            if new_x > SCREEN_SIZE[0]: new_x = SCREEN_SIZE[0]
-            if new_x < 0: new_x = 0
-            if new_y > SCREEN_SIZE[1]: new_y = SCREEN_SIZE[1]
-            if new_y < 0: new_y = 0
+            # # don't let blobs go out of bounds
+            # if new_x > SCREEN_SIZE[0]: new_x = SCREEN_SIZE[0]
+            # if new_x < 0: new_x = 0
+            # if new_y > SCREEN_SIZE[1]: new_y = SCREEN_SIZE[1]
+            # if new_y < 0: new_y = 0
+
+            # infinite environment
+            if new_x > SCREEN_SIZE[0]: new_x = 0
+            if new_x < 0: new_x = SCREEN_SIZE[0]
+            if new_y > SCREEN_SIZE[1]: new_y = 0
+            if new_y < 0: new_y = SCREEN_SIZE[1]
 
             # update new transform
             self.center_x, self.center_y = new_x, new_y
@@ -711,7 +734,7 @@ class Blob(ParentSprite):
             if new_c < 0:   new_c = 0        
             new_col[i] = int(new_c)
 
-        model.blobs.append(Blob(model, new_col, NN([(1, self.nn)])))
+        model.blobs.append(Blob(model, new_col, (1, self.nn, new_col), self.center_x, self.center_y))
 
     def score(self):
         """

@@ -8,6 +8,7 @@ from food import *
 from blob import *
 import os
 
+
 ''' NOTES:
 
     GOOGLE CHALLENGES:
@@ -41,41 +42,19 @@ import os
 
         SHORT TERM (now):
 
-<<<<<<< HEAD
-            check out: replika app - AI that talks to you
-=======
-            output: number of generations. graph at every time step
-                    Average life span, standard deviation of life span
-
-            vision: first step look at everything in sight, then only look at perimeter
->>>>>>> 78a2ca2bb37ea98abcedba0561d1b9cdbbc1d915
-
-            gunna have to change up neural network in some way
-
-                i think the reason the neural networks might not be displaying 
-                any sort of "intelligent" behavior is because their inputs are
-                usually gray
-
-                    also why is there no bias in the equation?
-
-                    also why is a neuron's output literally just the 
-                    the squashed sum of its inputs? what about the
-                    activation function?
-
-                    might need to find a way to make the inputs more extreme
-                        particularly the sight ones
-                        but definately test them all
-
-                        once thats done, messing with the MAX_ABS_WEIGHT would
-                        be a good idea too
-
-                    maybe print out some sort of average and std dev values over a
-                    long span of time (a few seconds) to get an idea of what that 
-                    neuron goes through
+            i need to get a brain that actually works
+                aka clearly steers torwards food
+                might need to make the simulation bigger
+                    smaller blobs and food
+                    bigger environment
+                    more blobs and food
+                might need to run the simulation for longer
+                might need to run it differently
+                    see how the other guy runs his to make your decision
+                        see questions below
 
 
-
-            gotta figure out how to run simulation:
+            figure out how to run simulation:
 
                 is there a way to control the number of blobs currently 
                 alive by controlling how they reproduce and how food spawns?
@@ -95,6 +74,11 @@ import os
 
 
 
+            output: number of generations. graph at every time step
+                    Average life span, standard deviation of life span
+
+
+
             check out (gpu cloud service):
 
                 aws
@@ -104,12 +88,6 @@ import os
                 check student teirs
 
 
-
-            need to make input sensors more sensitive
-            the nn isn't going to output much ever
-            if its inputs are always close to zero
-
-                consider sqashing the eye rgb inputs
 
         MEDIUM TERM (later):
 
@@ -358,28 +336,28 @@ class PyGameView(object):
                 # DRAW WEIGHTS
                 if self.first_blob_drawing:
                     
-                    # input to hidden layer
-                    for i in range(INPUT_LAYER_SIZE):
-                        for h in range(HIDDEN_LAYER_SIZE):
-                            self.draw_weight( \
-                                input_x,  input_y+i*25, \
-                                hidden_x, hidden_y+h*25, \
-                                blob.nn.W1[i][h])
+                    # # input to hidden layer
+                    # for i in range(INPUT_LAYER_SIZE):
+                    #     for h in range(HIDDEN_LAYER_SIZE):
+                    #         self.draw_weight( \
+                    #             input_x,  input_y+i*25, \
+                    #             hidden_x, hidden_y+h*25, \
+                    #             blob.nn.W1[i][h])
                             
-                    # hidden to output
-                    for h in range(HIDDEN_LAYER_SIZE):
-                        for o in range(OUTPUT_LAYER_SIZE):
-                            self.draw_weight( \
-                                hidden_x, hidden_y+h*25, \
-                                output_x, output_y+o*60, \
-                                blob.nn.W2[h][o])
+                    # # hidden to output
+                    # for h in range(HIDDEN_LAYER_SIZE):
+                    #     for o in range(OUTPUT_LAYER_SIZE):
+                    #         self.draw_weight( \
+                    #             hidden_x, hidden_y+h*25, \
+                    #             output_x, output_y+o*60, \
+                    #             blob.nn.W2[h][o])
 
                     # DRAW NEURON OUTLINES
                     for i in range(INPUT_LAYER_SIZE):
                         self.draw_neuron_outline(input_x, input_y+i*25)
 
-                    for h in range(HIDDEN_LAYER_SIZE):
-                        self.draw_neuron_outline(hidden_x, hidden_y+h*25)
+                    # for h in range(HIDDEN_LAYER_SIZE):
+                    #     self.draw_neuron_outline(hidden_x, hidden_y+h*25)
 
                     for o in range(OUTPUT_LAYER_SIZE):
                         self.draw_neuron_outline(output_x, output_y+o*60)
@@ -396,11 +374,11 @@ class PyGameView(object):
                     self.draw_neuron(input_x, input_y, i)
                     input_y += 25
 
-                # DRAW HIDDEN LAYER NEURONS
-                for h in blob.nn.hiddenLayer:
-                    selected_neuron = selected_neuron or \
-                    self.draw_neuron(hidden_x, hidden_y, h)
-                    hidden_y += 25
+                # # DRAW HIDDEN LAYER NEURONS
+                # for h in blob.nn.hiddenLayer:
+                #     selected_neuron = selected_neuron or \
+                #     self.draw_neuron(hidden_x, hidden_y, h)
+                #     hidden_y += 25
 
                 # DRAW OUTPUT LAYER NEURONS
                 for o in [blob.left_wheel_rotation, blob.right_wheel_rotation]:
@@ -780,9 +758,29 @@ class Model(object):
         """
         top_scoring = sorted(self.vip_genes, reverse=True)[:num_winners]
 
+        # make a third of them like the 1st highest scoring blob
+        # make a third of them like the 2nd highest scoring blob
+        # make the final third random 
+        a, b = 0, 0
         for i in range(0, BLOB_NUM):
-            new_NN = NN(parents_NN=top_scoring)
-            self.blobs.append(Blob(self, np.random.randint(256, size=3), new_NN))
+            if i >= a:
+                a += BLOB_NUM / 3
+                b += 1
+
+            if b == 1: # 1st highest scoring
+                nn = top_scoring[0]
+                col = top_scoring[0][2]
+
+            elif b == 2: # 2nd highest scoring
+                nn = top_scoring[1]
+                col = top_scoring[1][2]
+
+            else:
+                nn = None
+                col = np.random.randint(256, size=3)
+
+            self.blobs.append(Blob(self, col, nn))
+            #self.blobs.append(Blob(self, top_scoring[2], new_NN))
 
 class PyGameKeyboardController(object):
     """

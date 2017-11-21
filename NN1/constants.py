@@ -3,11 +3,11 @@ import pygame
 
 SCREEN_SIZE = (600, 400)
 INFO_BOX_SIZE = (400, SCREEN_SIZE[1])
-FOOD_NUM = 4
+FOOD_NUM = 8
 BLOB_NUM = 6
 NUM_PARENTS = 2
-MUTATION_RATE = 0.2
-MUTATION_AMOUNT = 0.05
+MUTATION_RATE = 0.001
+MUTATION_AMOUNT = 0.02
 MAX_ENERGY = 1000.0
 ENERGY_LOSS_CONSTANT = .1
 
@@ -28,8 +28,10 @@ FOOD_COLOR = pygame.Color('red')
 
 # neural network constants
 INPUT_LAYER_SIZE  = 10
-HIDDEN_LAYER_SIZE = 11
+HIDDEN_LAYER_SIZE = 88
 OUTPUT_LAYER_SIZE = 2
+CONNS = 3 # CONNS = the number of input connections for each node in the nn 
+BRAIN_SIZE = INPUT_LAYER_SIZE + HIDDEN_LAYER_SIZE + OUTPUT_LAYER_SIZE
 MAX_ABS_WEIGHT = 2 # maximum absolute value of the weight of a connection in the neural network
 
 
