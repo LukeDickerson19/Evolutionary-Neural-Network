@@ -5,7 +5,7 @@ from pygame.locals import QUIT, KEYDOWN
 from pygame import gfxdraw
 from constants import *
 from food import *
-from blob import *
+from bot import *
 import os
 
 
@@ -45,9 +45,9 @@ import os
             i need to get a brain that actually works
                 aka clearly steers torwards food
                 might need to make the simulation bigger
-                    smaller blobs and food
+                    smaller bots and food
                     bigger environment
-                    more blobs and food
+                    more bots and food
                 might need to run the simulation for longer
                 might need to run it differently
                     see how the other guy runs his to make your decision
@@ -56,13 +56,13 @@ import os
 
             figure out how to run simulation:
 
-                is there a way to control the number of blobs currently 
+                is there a way to control the number of bots currently 
                 alive by controlling how they reproduce and how food spawns?
 
-                    do we want to remove the worst blob when one blob
+                    do we want to remove the worst bot when one bot
                     eats food?
 
-                    do we want the blobs to reproduce when they eat food?
+                    do we want the bots to reproduce when they eat food?
 
 
                 go through program and make it so it can draw faster
@@ -93,7 +93,7 @@ import os
 
             things to plot over time (t = iteration number, not time itself):
 
-                number of blobs
+                number of bots
                 number of food
 
 
@@ -171,7 +171,7 @@ class PyGameView(object):
 
         self.mouse_pos = (0,0) # mouse position
         self.mouse_radius = 30 # radius of circle around mouse
-        self.first_blob_drawing = True # this is so we draw the input/output keys for the blob nn only once
+        self.first_bot_drawing = True # this is so we draw the input/output keys for the bot nn only once
         self.last_time_steps_selected_circle = model.selected_circle
         self.first_food_drawing = True
         self.first_nothing = True
@@ -211,7 +211,7 @@ class PyGameView(object):
 
     def draw_simulation(self):
         """ 
-        Draw blobs, food, and text to the pygame window 
+        Draw bots, food, and text to the pygame window 
         """
         # fill background
         self.simulation_surface.fill(pygame.Color('black'))
@@ -234,30 +234,30 @@ class PyGameView(object):
                 food.radius
                 )                    
 
-        # draw blobs
-        for blob in self.model.blobs:
-            if blob.alive:
+        # draw bots
+        for bot in self.model.bots:
+            if bot.alive:
                 pygame.draw.circle(
-                    self.simulation_surface, blob.color,
-                    blob.int_center, int(blob.radius))
+                    self.simulation_surface, bot.color,
+                    bot.int_center, int(bot.radius))
                 # pygame.draw.circle(
                 #     self.simulation_surface, pygame.Color('green'),
-                #     blob.p_left, 2)
+                #     bot.p_left, 2)
                 # pygame.draw.circle(
                 #     self.simulation_surface, pygame.Color('red'), 
-                #     blob.p_right, 2)
+                #     bot.p_right, 2)
                 # pygame.draw.circle( # left eye
                 #     self.simulation_surface, pygame.Color('white'),
-                #     blob.left_eye_pos, 2)
+                #     bot.left_eye_pos, 2)
 
 
-        # draw vision of the selected blob
-        blob = self.model.selected_circle
-        if blob != None and blob.__class__.__name__ == 'Blob':
+        # draw vision of the selected bot
+        bot = self.model.selected_circle
+        if bot != None and bot.__class__.__name__ == 'bot':
             if model.draw_left:
-                self.draw_visual_field(blob, 'left_eye')
+                self.draw_visual_field(bot, 'left_eye')
             if model.draw_right:
-                self.draw_visual_field(blob, 'right_eye')
+                self.draw_visual_field(bot, 'right_eye')
 
         # draw mouse selector
         self.mouse_pos = pygame.mouse.get_pos()
@@ -269,19 +269,19 @@ class PyGameView(object):
 
         pygame.display.update()
 
-    def draw_visual_field(self, blob, eye):
+    def draw_visual_field(self, bot, eye):
         
-        ex, ey = blob.eye_data[eye]['pos'][0], blob.eye_data[eye]['pos'][1]
+        ex, ey = bot.eye_data[eye]['pos'][0], bot.eye_data[eye]['pos'][1]
         if eye == 'left_eye':
             e = -1
-            arcs = blob.left_arcs
+            arcs = bot.left_arcs
         else: # right eye
             e = 1
-            arcs = blob.right_arcs
+            arcs = bot.right_arcs
         # pygame.gfxdraw.pie(self.simulation_surface, \
-        #     int(ex), int(ey), int(blob.max_visable_distance), \
-        #     int(180 * (blob.angle + e*blob.eye_separation - blob.eye_peripheral_width) / np.pi), \
-        #     int(180 * (blob.angle + e*blob.eye_separation + blob.eye_peripheral_width) / np.pi), \
+        #     int(ex), int(ey), int(bot.max_visable_distance), \
+        #     int(180 * (bot.angle + e*bot.eye_separation - bot.eye_peripheral_width) / np.pi), \
+        #     int(180 * (bot.angle + e*bot.eye_separation + bot.eye_peripheral_width) / np.pi), \
         #     pygame.Color('white'))
         for a in arcs:
             d = a['d']
@@ -310,14 +310,14 @@ class PyGameView(object):
         if self.model.selected_circle != None:
 
             if model.selected_circle != self.last_time_steps_selected_circle:
-                self.first_blob_drawing = True
+                self.first_bot_drawing = True
                 self.first_food_drawing = True
 
-            if self.model.selected_circle.__class__.__name__ == 'Blob':
-                blob = self.model.selected_circle
+            if self.model.selected_circle.__class__.__name__ == 'bot':
+                bot = self.model.selected_circle
 
                 # fill background
-                if self.first_blob_drawing:
+                if self.first_bot_drawing:
                     self.info_box_surface.fill(pygame.Color('black'))
                     pygame.draw.rect(self.info_box_surface, pygame.Color('black'), \
                         [0, 0, INFO_BOX_SIZE[0], 190])
@@ -334,7 +334,7 @@ class PyGameView(object):
                 output_x, output_y = 320, 100
 
                 # DRAW WEIGHTS
-                if self.first_blob_drawing:
+                if self.first_bot_drawing:
                     
                     # # input to hidden layer
                     # for i in range(INPUT_LAYER_SIZE):
@@ -342,7 +342,7 @@ class PyGameView(object):
                     #         self.draw_weight( \
                     #             input_x,  input_y+i*25, \
                     #             hidden_x, hidden_y+h*25, \
-                    #             blob.nn.W1[i][h])
+                    #             bot.nn.W1[i][h])
                             
                     # # hidden to output
                     # for h in range(HIDDEN_LAYER_SIZE):
@@ -350,7 +350,7 @@ class PyGameView(object):
                     #         self.draw_weight( \
                     #             hidden_x, hidden_y+h*25, \
                     #             output_x, output_y+o*60, \
-                    #             blob.nn.W2[h][o])
+                    #             bot.nn.W2[h][o])
 
                     # DRAW NEURON OUTLINES
                     for i in range(INPUT_LAYER_SIZE):
@@ -369,19 +369,19 @@ class PyGameView(object):
                 selected_neuron = False
 
                 # DRAW INPUT LAYER NEURONS
-                for i in blob.input_list:
+                for i in bot.input_list:
                     selected_neuron = selected_neuron or \
                     self.draw_neuron(input_x, input_y, i)
                     input_y += 25
 
                 # # DRAW HIDDEN LAYER NEURONS
-                # for h in blob.nn.hiddenLayer:
+                # for h in bot.nn.hiddenLayer:
                 #     selected_neuron = selected_neuron or \
                 #     self.draw_neuron(hidden_x, hidden_y, h)
                 #     hidden_y += 25
 
                 # DRAW OUTPUT LAYER NEURONS
-                for o in [blob.left_wheel_rotation, blob.right_wheel_rotation]:
+                for o in [bot.left_wheel_rotation, bot.right_wheel_rotation]:
                     selected_neuron = selected_neuron or \
                     self.draw_neuron(output_x, output_y, o)
                     output_y += 60
@@ -409,7 +409,7 @@ class PyGameView(object):
                     (0,0), (0,INFO_BOX_SIZE[1]))
 
                 # reset other options
-                self.first_blob_drawing = True                
+                self.first_bot_drawing = True                
                 self.first_nothing = True
 
         # else nothing is selected
@@ -429,7 +429,7 @@ class PyGameView(object):
                     (0,0), (0,INFO_BOX_SIZE[1]))
 
             # reset other options
-            self.first_blob_drawing = True
+            self.first_bot_drawing = True
             self.first_food_drawing = True
 
         self.last_time_steps_selected_circle = model.selected_circle
@@ -437,8 +437,8 @@ class PyGameView(object):
 
         # draw nn of selected bot
         if self.model.selected_circle != None:
-            if self.model.selected_circle.__class__.__name__ == 'Blob':
-                blob = self.model.selected_circle
+            if self.model.selected_circle.__class__.__name__ == 'bot':
+                bot = self.model.selected_circle
 
                 # fill background (just the nn diagram part)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('black'), \
@@ -458,14 +458,14 @@ class PyGameView(object):
                 bar_y = 5
                 self.draw_text_in_info_box('E', 5, bar_y, 20)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_input_x, bar_y, (blob.energy/MAX_ENERGY)*bar[0], bar[1]])
+                    [bar_input_x, bar_y, (bot.energy/MAX_ENERGY)*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, bar[0], bar[1]], 1)
                 bar_y += 20
 
                 # left eye
                 self.draw_text_in_info_box('LE', 5, bar_y+bar[1], 20)
-                lr, lg, lb = blob.visual_input['left_eye']
+                lr, lg, lb = bot.visual_input['left_eye']
                 if lr > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('red'), \
                         [bar_input_x, bar_y, lr*bar[0], bar[1]])
@@ -483,7 +483,7 @@ class PyGameView(object):
 
                 # right eye
                 self.draw_text_in_info_box('RE', 5, bar_y+bar[1], 20)
-                rr, rg, rb = blob.visual_input['right_eye']
+                rr, rg, rb = bot.visual_input['right_eye']
                 if rr > 0.0:
                     pygame.draw.rect(self.info_box_surface, pygame.Color('red'), \
                         [bar_input_x, bar_y, rr*bar[0], bar[1]])
@@ -502,7 +502,7 @@ class PyGameView(object):
                 # hearing
                 self.draw_text_in_info_box('H', 5, bar_y, 20)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_input_x, bar_y, blob.noise_heard*bar[0], bar[1]])
+                    [bar_input_x, bar_y, bot.noise_heard*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, bar[0], bar[1]], 1)
                 bar_y += 20
@@ -510,21 +510,21 @@ class PyGameView(object):
                 # food smell
                 self.draw_text_in_info_box('FS', 5, bar_y, 20)
                 pygame.draw.rect(self.info_box_surface, FOOD_COLOR, \
-                    [bar_input_x, bar_y, blob.food_smell*bar[0], bar[1]])
+                    [bar_input_x, bar_y, bot.food_smell*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, bar[0], bar[1]], 1)
                 bar_y += 20
 
-                # blob smell
+                # bot smell
                 self.draw_text_in_info_box('BS', 5, bar_y, 20)
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
-                    [bar_input_x, bar_y, blob.blob_smell*bar[0], bar[1]])
+                    [bar_input_x, bar_y, bot.bot_smell*bar[0], bar[1]])
                 pygame.draw.rect(self.info_box_surface, pygame.Color('white'), \
                     [bar_input_x, bar_y, bar[0], bar[1]], 1)
                 bar_y += 20
 
                 # draw input key
-                if self.first_blob_drawing:
+                if self.first_bot_drawing:
                     self.draw_text_in_info_box("INPUTS:", 15, 200, 20)
                     for n, line in enumerate(KEY_INPUTS):
                         self.draw_text_in_info_box(line, 15, 205+14*(n+1), 20)                
@@ -535,18 +535,18 @@ class PyGameView(object):
                 # left wheel rotation
                 output_y = 60
                 self.draw_text_in_info_box('LW', output_x+bar[0]+10, bar_y, 20)
-                self.draw_neuron(output_x, output_y, blob.left_wheel_rotation)
+                self.draw_neuron(output_x, output_y, bot.left_wheel_rotation)
                 output_y += 20
 
                 # right wheel rotation
                 self.draw_text_in_info_box('RW', output_x+bar[0]+10, bar_y, 20)
-                self.draw_neuron(output_x, output_y, blob.right_wheel_rotation)
+                self.draw_neuron(output_x, output_y, bot.right_wheel_rotation)
                 bar_y += 20
 
 
                 # draw output key
-                if self.first_blob_drawing:
-                    self.first_blob_drawing = False
+                if self.first_bot_drawing:
+                    self.first_bot_drawing = False
                     self.draw_text_in_info_box("OUTPUTS:", 220, 200, 20)
                     for n, line in enumerate(KEY_OUTPUTS):
                         self.draw_text_in_info_box(line, 220, 205+14*(n+1), 20)
@@ -555,7 +555,7 @@ class PyGameView(object):
                 hidden_x = 150
                 hidden_y = 10
 
-                for node in blob.nn.hiddenLayer:
+                for node in bot.nn.hiddenLayer:
 
                     self.draw_neuron(hidden_x, hidden_y, node)
                     hidden_y += 20
@@ -578,8 +578,8 @@ class PyGameView(object):
                     pygame.Color('white'), \
                     (0,0), (0,INFO_BOX_SIZE[1]))
 
-            # reset first_blob_drawing
-            self.first_blob_drawing = True                
+            # reset first_bot_drawing
+            self.first_bot_drawing = True                
 
         # else nothing is selected
         else:
@@ -594,9 +594,9 @@ class PyGameView(object):
                 pygame.Color('white'), \
                 (0,0), (0,INFO_BOX_SIZE[1]))
 
-            # reset first_blob_drawing and first_food_drawing
+            # reset first_bot_drawing and first_food_drawing
             # to True for when next circle is selected
-            self.first_blob_drawing = True
+            self.first_bot_drawing = True
             self.first_food_drawing = True
 
     def draw_neuron(self, x, y, value):
@@ -669,12 +669,12 @@ class PyGameView(object):
         self.draw_text_in_info_box('FS', input_x-40, input_y-7, 20)
         input_y += 25
 
-        # blob smell
+        # bot smell
         self.draw_text_in_info_box('BS', input_x-40, input_y-7, 20)
         input_y += 25
 
         # draw input key
-        if self.first_blob_drawing:
+        if self.first_bot_drawing:
             self.draw_text_in_info_box("INPUTS:", 15, 290, 20)
             for n, line in enumerate(KEY_INPUTS):
                 self.draw_text_in_info_box(line, 15, 295+14*(n+1), 20)                
@@ -690,8 +690,8 @@ class PyGameView(object):
         self.draw_text_in_info_box('RW', output_x+14, output_y-7, 20)
         
         # draw output key
-        if self.first_blob_drawing:
-            self.first_blob_drawing = False
+        if self.first_bot_drawing:
+            self.first_bot_drawing = False
             self.draw_text_in_info_box("OUTPUTS:", 220, 290, 20)
             for n, line in enumerate(KEY_OUTPUTS):
                 self.draw_text_in_info_box(line, 220, 295+14*(n+1), 20)
@@ -718,15 +718,15 @@ class Model(object):
         self.show_controls = False # controls toggle
         self.draw_left  = False # draw left eye field of view of selected circle
         self.draw_right = False # draw right eye field of view of selected circle
-        self.selected_circle = None # blob or food selected for display in the info box
+        self.selected_circle = None # bot or food selected for display in the info box
         #self.sleep_time = .005 #seconds between frames
 
-        # create food and blobs
-        self.foods, self.blobs = [], []
+        # create food and bots
+        self.foods, self.bots = [], []
         for i in range(0, FOOD_NUM):
             self.foods.append(Food(self))
-        for i in range(0, BLOB_NUM):
-            self.blobs.append(Blob(self, np.random.randint(256, size=3)))
+        for i in range(0, BOT_NUM):
+            self.bots.append(bot(self, np.random.randint(256, size=3)))
 
         # population progressions
         self.population = 0
@@ -738,33 +738,33 @@ class Model(object):
         a frame 
         """
 
-        for blob in self.blobs:
-            blob.update_inputs(self, controller)
-        for blob in self.blobs:
-            blob.update_outputs(self)
+        for bot in self.bots:
+            bot.update_inputs(self, controller)
+        for bot in self.bots:
+            bot.update_outputs(self)
 
 
-        # If all blobs are dead, start new cycle
-        if self.blobs == []:
+        # If all bots are dead, start new cycle
+        if self.bots == []:
             self.create_population(NUM_PARENTS)
             self.vip_genes = []
 
     def create_population(self, num_winners=2):
         """ 
-        create new population of blobs based on the top scoring blobs
+        create new population of bots based on the top scoring bots
 
         Args:
-            num_winners (int): number of vip blobs to use
+            num_winners (int): number of vip bots to use
         """
         top_scoring = sorted(self.vip_genes, reverse=True)[:num_winners]
 
-        # make a third of them like the 1st highest scoring blob
-        # make a third of them like the 2nd highest scoring blob
+        # make a third of them like the 1st highest scoring bot
+        # make a third of them like the 2nd highest scoring bot
         # make the final third random 
         a, b = 0, 0
-        for i in range(0, BLOB_NUM):
+        for i in range(0, BOT_NUM):
             if i >= a:
-                a += BLOB_NUM / 3
+                a += BOT_NUM / 3
                 b += 1
 
             if b == 1: # 1st highest scoring
@@ -779,8 +779,8 @@ class Model(object):
                 nn = None
                 col = np.random.randint(256, size=3)
 
-            self.blobs.append(Blob(self, col, nn))
-            #self.blobs.append(Blob(self, top_scoring[2], new_NN))
+            self.bots.append(bot(self, col, nn))
+            #self.bots.append(bot(self, top_scoring[2], new_NN))
 
 class PyGameKeyboardController(object):
     """
@@ -818,7 +818,7 @@ class PyGameKeyboardController(object):
                     if view.mouse_radius <= 5: view.mouse_radius = 5 
                 elif event.button == 1:
                     #print 'mouse left click'
-                    # select any blob or food in the circle
+                    # select any bot or food in the circle
                     # if multiple circles in mouse circle
                     # select one closest to center
                     mx, my = view.mouse_pos
@@ -826,7 +826,7 @@ class PyGameKeyboardController(object):
                     and my < SCREEN_SIZE[1] and my > 0:
                         model.selected_circle = None
                         closest_distance = view.mouse_radius + 5
-                        circles = model.blobs + model.foods
+                        circles = model.bots + model.foods
                         for c in circles:
                             distance = np.sqrt((c.center_x - mx)**2 + (c.center_y - my)**2)
                             if distance <= view.mouse_radius and distance < closest_distance:
@@ -841,17 +841,17 @@ class PyGameKeyboardController(object):
         elif event.key == pygame.K_SPACE:
             self.paused = not self.paused
         elif event.key == pygame.K_d:
-            for blob in model.blobs:
+            for bot in model.bots:
                 print 'W1 is'
-                print blob.nn.W1
+                print bot.nn.W1
                 print ""
                 print "W2 is"
                 print ""
-                print blob.nn.W2
+                print bot.nn.W2
                 # break #iterate through first thing in a list
         elif event.key == pygame.K_k:
-            for blob in model.blobs:
-                blob.energy = 0
+            for bot in model.bots:
+                bot.energy = 0
         elif event.key == pygame.K_s:
             model.show_gen = not model.show_gen
             if not model.show_gen:

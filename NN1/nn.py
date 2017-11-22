@@ -5,12 +5,12 @@ import random
 # old NN - multi layer perceptron
 class NN(object):
     """ 
-    Represents the Neural Network of a blob 
+    Represents the Neural Network of a bot 
     """
 
     def __init__(self, parents_NN=None):
         """ 
-        intializes the neural network of a blob
+        intializes the neural network of a bot
 
         Args:
             parents_NN (list): list of neural networks (classes)
@@ -48,7 +48,7 @@ class NN(object):
         return W1, W2
     def get_recombine2(self, parents_NN):
         """ 
-        Natural evolution isn't working.  When nn is passed in from blob.eat_food, it experiences no mutation.
+        Natural evolution isn't working.  When nn is passed in from bot.eat_food, it experiences no mutation.
 
         Args:
             parents_NN (list): list of neural networks (classes)
@@ -121,7 +121,7 @@ class NN2(object):
     def __init__(self, parents_NN=None):
 
         """ 
-        intializes the neural network of a blob
+        intializes the neural network of a bot
 
         Args:
             parents_NN (list): list of neural networks (classes)

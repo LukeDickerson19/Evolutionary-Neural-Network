@@ -3,28 +3,28 @@ import pygame
 
 SCREEN_SIZE = (600, 400)
 INFO_BOX_SIZE = (400, SCREEN_SIZE[1])
-FOOD_NUM = 8
-BLOB_NUM = 6
+FOOD_NUM = 6
+BOT_NUM = 6
 NUM_PARENTS = 2
 MUTATION_RATE = 0.001
 MUTATION_AMOUNT = 0.02
 MAX_ENERGY = 1000.0
 ENERGY_LOSS_CONSTANT = .1
 
-# additional blob constants
-BLOB_BODY_RADIUS = 15
+# additional BOT constants
+BOT_BODY_RADIUS = 15
 WHEEL_RADIUS = 1.50
-AXLE_LENGTH = 1.0 * (2 * BLOB_BODY_RADIUS)
+AXLE_LENGTH = 1.0 * (2 * BOT_BODY_RADIUS)
 MAX_WHEEL_ROTATION = np.pi # max rotation a wheel can perform each time step
 EYE_SEPARATION = np.pi / 7 # angle from direction they're facing
 EYE_PERIPHERAL_WIDTH = np.pi / 3 # angle from center of eye's vision to edge of peripheral
-MAX_VISABLE_DISTANCE = 12 * BLOB_BODY_RADIUS # how far the eye can see
+MAX_VISABLE_DISTANCE = 12 * BOT_BODY_RADIUS # how far the eye can see
 VISION_OPAQUENESS = 25 # how opaque the view draws the arcs of the vision (0 to 255)
-NOISE_AMPLIFIER = 20 # used to amplify how much noise a blob makes from its movement
+NOISE_AMPLIFIER = 20 # used to amplify how much noise a bot makes from its movement
 
 # additional food constants
 FOOD_RADIUS = 9
-FOOD_COLOR = pygame.Color('red')
+FOOD_COLOR = pygame.Color('green')
 
 # neural network constants
 INPUT_LAYER_SIZE  = 10
@@ -42,8 +42,8 @@ CONTROLS = [
     "    k = Kill all (new generation created)",
     "    s = Toggle simulation drawing",
     "    h = Toggle help",
-    "    l = toggle left eye field of view of selected blob",
-    "    r = toggle right eye field of view of selected blob"
+    "    l = toggle left eye field of view of selected bot",
+    "    r = toggle right eye field of view of selected bot"
 ]
 
 KEY_INPUTS = [
@@ -52,7 +52,7 @@ KEY_INPUTS = [
 	"RE = Right Eye",
 	"H   = Hearing",
 	"FS = Food Smell",
-	"BS = Blob Smell"
+	"BS = BOT Smell"
 ]
 
 KEY_OUTPUTS = [

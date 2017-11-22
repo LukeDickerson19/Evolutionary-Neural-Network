@@ -18,7 +18,7 @@ class Food(ParentSprite):
         #self.center_x, self.center_y = SCREEN_SIZE[0] / 2, SCREEN_SIZE[1] / 2
         self.radius = FOOD_RADIUS
         overlapped = True
-        circles = model.blobs + model.foods
+        circles = model.bots + model.foods
         while overlapped:
             self.center_x = random.randint(0, SCREEN_SIZE[0])
             self.center_y = random.randint(0, SCREEN_SIZE[1])
