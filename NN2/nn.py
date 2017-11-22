@@ -34,7 +34,8 @@ class NN(object):
                 (self.hiddenLayerSize, self.outputLayerSize))
 
     def get_recombine(self, parents_NN):
-        pw1, pw2 = parents_NN[1].W1, parents_NN[1].W2
+        
+        pw1, pw2 = parents_NN.W1, parents_NN.W2
         W1 = []
         for i in range(len(pw1)):
             W1.append([])

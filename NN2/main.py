@@ -41,6 +41,8 @@ import os
 
         SHORT TERM (now):
 
+            l and r stopped showing left and right visual fields
+                did i turn that off somehow?
 
             figure out how to run simulation:
 
@@ -205,7 +207,7 @@ class PyGameView(object):
         self.simulation_surface.fill(pygame.Color('black'))
 
         # draw population number
-        self.draw_text_in_simulation(str(self.model.population), 1, 1, 48)
+        #self.draw_text_in_simulation(str(self.model.population), 1, 1, 48)
 
         # draw controls helper
         if model.show_controls:

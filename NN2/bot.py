@@ -435,7 +435,7 @@ class Bot(ParentSprite):
             #if model.selected_circle == self:
             #    model.selected_circle == None
             self.score_int = self.score()
-            model.vip_genes.append((self.score_int, self.nn, self.color))
+            model.vip_genes.append((self.score_int, self))
 
             model.bots.remove(self)
     def print_energy(self):
@@ -664,15 +664,20 @@ class Bot(ParentSprite):
                 # kill lowest energy bot if there are more than BOT_NUM bots
                 if len(model.bots) > BOT_NUM:
                     energy_list = []
-                    for b in model.bots:
-                        energy_list.append(b.energy)
+                    for bot in model.bots:
+                        energy_list.append(bot.energy)
                     del model.bots[np.argmin(energy_list)]
 
-	def reproduce_asexually(self, model):
+    def reproduce_asexually(self, model):
 
-		children = self.reproduce(model)
-
-		for child in children:
+        number_of_children = 1
+        children = []
+        for c in range(number_of_children):
+            child = self.reproduce(model)
+            if child['found_spot']:
+                children.append(child)
+		
+        for child in children:
 
 			# color
 			new_col = [0] * 3

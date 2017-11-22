@@ -4,7 +4,6 @@ import random
 from constants import *
 
 
-
 class ParentSprite(object):
     """
     Parent class for sprites that defines standard methods and attributes for
@@ -36,42 +35,35 @@ class ParentSprite(object):
 
     def reproduce(self, model):
 
-        # determine number of children
-        if isinstance(self, Bot):
-            number_of_children = 1
-        else: number_of_children = \
-        np.random.uniform(1,4)
-
-        # get data on children
-        children = []
+        # get data on child
         circles = model.bots + model.foods
         birth_distance = self.radius * np.random.uniform(2,5)
         d_ang = np.pi/15
-        for i in range(number_of_children):
 
-            child = {}
+        child = {}
 
-            # position
-            overlapped = True
-            angle2 = 0
-            while overlapped:
-                x = self.x + birth_distance*np.cos(-self.angle+angle2)
-                y = self.y + birth_distance*np.sin(-self.angle+angle2)
-                angle2 += d_ang
-                if x > SCREEN_SIZE[0] or x < 0 or y > SCREEN_SIZE[1] or y < 0: continue
-                overlapped = False
-                for c in circles:
-                    if self.get_dist(c) < c.radius + self.radius:
-                        overlapped = True
-                        break
+        # position
+        overlapped = True
+        angle2 = 0
 
-            # angle
-            child['angle'] = self.angle
+        while overlapped:
+            x = self.x + birth_distance*np.cos(-self.angle+angle2)
+            y = self.y + birth_distance*np.sin(-self.angle+angle2)
+            angle2 += d_ang
+            if angle2 > 2*np.pi: break
+            if x > SCREEN_SIZE[0] or x < 0 or y > SCREEN_SIZE[1] or y < 0: continue
+            overlapped = False
+            for c in circles:
+                if self.get_dist(c) < c.radius + self.radius:
+                    overlapped = True
+                    break
+        child['x'], child['y'] = x, y
+        child['found_spot'] = not overlapped
 
-            # create this child if we found a place for them
-            if not overlapped: children.append(child)
+        # angle
+        child['angle'] = self.angle
 
-        return children
+        return child
 
     def get_dist(self, other):
         """ 
