@@ -5,7 +5,7 @@
 This program runs a simulation of a robots that use MLP neural networks (NN)
 to learn to survive in the simulation.
 
-![Trained Bots](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/trained_bots.gif)
+<img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/trained_bots.gif" width="600" height="400">
 
 
 ## Motivation
@@ -17,10 +17,7 @@ reproduction, instead of with supervized learning or another
 form of NN training. <br />
 Each robot has its own Multi-Layer Perceptron NN:
 
-[[ https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/MLP_NN_display.gif | height = 400px ]]
 <img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/MLP_NN_display.gif" width="400" height="400">
-
-<img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/nn_display.png" width="400" height="400">
 
 The inputs of their NNs are: <br />
 * Energy: how much energy this bot has <br />
