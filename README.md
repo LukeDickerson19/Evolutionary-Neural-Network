@@ -13,29 +13,32 @@ eat food and reproduce, through the random mutations in
 reproduction, instead of with supervized learning or another
 form of NN training.
 
+![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/simulation_display.png?raw=true "Simulation")
 
 Each robot has its own Multi-Layer Perceptron NN:
 
 ![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/nn_display.png?raw=true "MLP Neural Network")
 
 The inputs of their NNs are:
-    Energy: how much energy this bot has
-    Left Eye RGB: how much red, green and blue the bot's left eye sees
-    Right Eye RGB: how much red, green and blue the bot's right eye sees
-    Sound: how much noise this bot hears,
-           the faster a bot move the more noise it makes,
-           the closer a bot is to other moving bots the louder
-           it hears that noise
-    Food Smell: how much food this bot smells,
-                the closer it is to food the greater this input is
-    Bot Smell: how much other bots this bot smells,
-                the closer it is to other bots the greater this input is
+    Energy: how much energy this bot has <br />
+    Left Eye RGB: how much red, green and blue the bot's left eye sees <br />
+    Right Eye RGB: how much red, green and blue the bot's right eye sees <br />
+    Sound: how much noise this bot hears, <br />
+           the faster a bot move the more noise it makes, <br />
+           the closer a bot is to other moving bots the louder <br />
+           it hears that noise <br />
+    Food Smell: how much food this bot smells, <br />
+                the closer it is to food the greater this input is <br />
+    Bot Smell: how much other bots this bot smells, <br />
+                the closer it is to other bots the greater this input is <br />
 
 The outputs of the NNs are:
     Left and right wheel rotation. 
 
 This gives their NNs 10 input neurons and 2 output neurons.
 Their NNs have one hidden layer of 88 neurons
+
+![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/vision_display.png?raw=true "Visual Input")
 
 When a robot eats food, it creates another child robot
 next to it. Its child will inherate its parent's color and
