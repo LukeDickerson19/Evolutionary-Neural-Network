@@ -11,7 +11,7 @@ RESOURCES:
         https://www.youtube.com/watch?v=tCPzYM7B338
 
 	3)
-	good explainations of how neural networks work
+	good explanations of how neural networks work
         http://www.theprojectspot.com/tutorial-post/introduction-to-artificial-neural-networks-part-1/7
 	https://www.youtube.com/watch?v=aircAruvnKk 3Blue1Brown
 
