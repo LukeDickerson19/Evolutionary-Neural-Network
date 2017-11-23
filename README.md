@@ -5,7 +5,6 @@
 This program runs a simulation of a robots that use MLP neural networks (NN)
 to learn to survive in the simulation.
 
-![Output sample](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/trained_bots.gif)
 ![Trained Bots](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/trained_bots.gif)
 
 
