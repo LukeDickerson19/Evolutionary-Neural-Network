@@ -1,3 +1,4 @@
+
 # Evolutionary Neural Networks
 
 ## Synopsis
@@ -14,10 +15,7 @@ The goal of this project was to try to train NNs to correctly
 control robots to move around in their simulated environment to
 eat food and reproduce, through the random mutations in
 reproduction, instead of with supervized learning or another
-form of NN training.
-
-<img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/simulation_display.png" width="450" height="300">
-
+form of NN training. <br />
 Each robot has its own Multi-Layer Perceptron NN:
 
 <img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/nn_display.png" width="400" height="400">
@@ -44,6 +42,7 @@ This gives their NNs 10 input neurons and 2 output neurons.
 Their NNs have one hidden layer of 88 neurons
 
 <img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/vision_display.png" width="300" height="300">
+(visual field of one of a bot's eye's)
 
 When a robot eats food, it creates another child robot
 next to it. Its child will inherate its parent's color and
