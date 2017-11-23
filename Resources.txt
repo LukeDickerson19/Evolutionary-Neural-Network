@@ -1,0 +1,24 @@
+RESOURCES:
+
+        1)
+	inspiration to do the project.
+	also implemented their DWRAON brain, but ended up not using it.
+        https://www.youtube.com/watch?v=GvEywP8t12I
+            https://sites.google.com/site/scriptbotsevo/
+
+	2)
+	more inspiration
+        https://www.youtube.com/watch?v=tCPzYM7B338
+
+	3)
+	good explainations of how neural networks work
+        http://www.theprojectspot.com/tutorial-post/introduction-to-artificial-neural-networks-part-1/7
+	https://www.youtube.com/watch?v=aircAruvnKk 3Blue1Brown
+
+	4)
+	used this code as a base to build off of
+        http://duncandhall.github.io/NaturalEvolution/index.html
+
+	5)
+        pygame documentation - 2D graphics library
+	https://www.pygame.org/docs/ref/draw.html
