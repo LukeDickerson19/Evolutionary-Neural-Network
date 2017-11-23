@@ -3,7 +3,7 @@ import pygame
 
 SCREEN_SIZE = (600, 400)
 INFO_BOX_SIZE = (400, SCREEN_SIZE[1])
-FOOD_NUM = 6
+FOOD_NUM = 7
 BOT_NUM = 6
 NUM_PARENTS = 2
 MUTATION_RATE = 0.001
@@ -23,15 +23,15 @@ VISION_OPAQUENESS = 25 # how opaque the view draws the arcs of the vision (0 to 
 NOISE_AMPLIFIER = 20 # used to amplify how much noise a bot makes from its movement
 
 # additional food constants
-FOOD_RADIUS = 9
-FOOD_COLOR = pygame.Color('green')
+FOOD_RADIUS = 10
+FOOD_COLOR = pygame.Color('red')
 
 # neural network constants
 INPUT_LAYER_SIZE  = 10
 HIDDEN_LAYER_SIZE = 88
 OUTPUT_LAYER_SIZE = 2
-CONNS = 3 # CONNS = the number of input connections for each node in the nn 
 BRAIN_SIZE = INPUT_LAYER_SIZE + HIDDEN_LAYER_SIZE + OUTPUT_LAYER_SIZE
+CONNS = 3 # CONNS = the number of input connections for each node in the nn 
 MAX_ABS_WEIGHT = 2 # maximum absolute value of the weight of a connection in the neural network
 
 

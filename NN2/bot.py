@@ -575,8 +575,9 @@ class Bot(ParentSprite):
             if new_y < 0: new_y = SCREEN_SIZE[1]
 
             # update new transform
-            self.x, self.y = new_x, new_y
-            self.int_center = int(self.x), int(self.y)
+            if not math.isnan(new_x) and not math.isnan(new_y):
+                self.center_x, self.center_y = new_x, new_y
+                self.int_center = int(self.center_x), int(self.center_y)
             self.angle += angle_of_movement
             self.out_of_bounds()
 

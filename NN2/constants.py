@@ -30,8 +30,8 @@ FOOD_COLOR = pygame.Color('green')
 INPUT_LAYER_SIZE  = 10
 HIDDEN_LAYER_SIZE = 88
 OUTPUT_LAYER_SIZE = 2
-CONNS = 3 # CONNS = the number of input connections for each node in the nn 
 BRAIN_SIZE = INPUT_LAYER_SIZE + HIDDEN_LAYER_SIZE + OUTPUT_LAYER_SIZE
+CONNS = 3 # CONNS = the number of input connections for each node in the nn 
 MAX_ABS_WEIGHT = 2 # maximum absolute value of the weight of a connection in the neural network
 
 

@@ -11,6 +11,11 @@ import os
 
 ''' NOTES:
 
+    tinytake:
+
+        https://lucius-gmail.tinytake.com/sf/MjEzNzUxNV82NjczNDgy
+        https://lucius-gmail.tinytake.com/sf/MjEzNzU4MF82NjczNTg3 <- this one the bots learned right
+
     GOOGLE CHALLENGES:
 
         google.com/foobar
@@ -42,17 +47,44 @@ import os
 
         SHORT TERM (now):
 
-            i need to get a brain that actually works
-                aka clearly steers torwards food
-                might need to make the simulation bigger
-                    smaller bots and food
-                    bigger environment
-                    more bots and food
-                might need to run the simulation for longer
-                might need to run it differently
-                    see how the other guy runs his to make your decision
-                        see questions below
+            determine how to make the readme video:
+                short and sweet (under a minute)
+                gotta sound like you know what your talking about
 
+
+            determine how to structure the artech presentation
+                my own computer
+                maybe an other screen
+
+            make video with you speaking over it:
+
+            "
+            this is the evolutionary neural network simulation i made
+
+            the goal was to try to train neural networks to correctly
+            control robots to move around in their environment to
+            eat food and reproduce, through the random mutations in
+            reproduction, instead of with supervized learning or another
+            form of neural network training.
+
+            The evolutionary selection is done when a robot intersects
+            with a food particle.
+
+            when a robot eats food (smaller red circles), it creates another child robot right
+            next to it. Its child will inherate its parent's color and
+            brain weights with slight mutations. At the time of birth of
+            the child robot, whichever robot currently has eaten 
+            the least amount of food will be killed to maintain a constant
+            number of robots at a time. So the race is on to get food
+            as quickly as possible.
+
+            Each time a food is eaten, another food is created at a random
+            location, in order to maintain a constant number of food
+
+            "
+
+            Resource 1: inspiration
+            Resource 2: Code was built on top of
 
             figure out how to run simulation:
 
@@ -217,7 +249,7 @@ class PyGameView(object):
         self.simulation_surface.fill(pygame.Color('black'))
 
         # draw population number
-        self.draw_text_in_simulation(str(self.model.population), 1, 1, 48)
+        #self.draw_text_in_simulation(str(self.model.population), 1, 1, 48)
 
         # draw controls helper
         if model.show_controls:
@@ -253,10 +285,10 @@ class PyGameView(object):
 
         # draw vision of the selected bot
         bot = self.model.selected_circle
-        if bot != None and bot.__class__.__name__ == 'bot':
-            if model.draw_left:
+        if bot != None and bot.__class__.__name__ == 'Bot':
+            if self.model.draw_left:
                 self.draw_visual_field(bot, 'left_eye')
-            if model.draw_right:
+            if self.model.draw_right:
                 self.draw_visual_field(bot, 'right_eye')
 
         # draw mouse selector
@@ -308,19 +340,19 @@ class PyGameView(object):
 
         # draw nn of selected bot
         if self.model.selected_circle != None:
-
+            
             if model.selected_circle != self.last_time_steps_selected_circle:
                 self.first_bot_drawing = True
                 self.first_food_drawing = True
 
-            if self.model.selected_circle.__class__.__name__ == 'bot':
+            if self.model.selected_circle.__class__.__name__ == 'Bot':
                 bot = self.model.selected_circle
 
                 # fill background
                 if self.first_bot_drawing:
                     self.info_box_surface.fill(pygame.Color('black'))
-                    pygame.draw.rect(self.info_box_surface, pygame.Color('black'), \
-                        [0, 0, INFO_BOX_SIZE[0], 190])
+                    #pygame.draw.rect(self.info_box_surface, pygame.Color('black'), \
+                    #    [0, 0, INFO_BOX_SIZE[0], 190])
 
                 # draw line that separates info box from simulation
                 pygame.draw.line( \
@@ -333,31 +365,33 @@ class PyGameView(object):
                 hidden_x, hidden_y = 180, 10
                 output_x, output_y = 320, 100
 
+                HIDDEN_LAYER_DISPLAY_SIZE = 11
+
                 # DRAW WEIGHTS
                 if self.first_bot_drawing:
-                    
-                    # # input to hidden layer
-                    # for i in range(INPUT_LAYER_SIZE):
-                    #     for h in range(HIDDEN_LAYER_SIZE):
-                    #         self.draw_weight( \
-                    #             input_x,  input_y+i*25, \
-                    #             hidden_x, hidden_y+h*25, \
-                    #             bot.nn.W1[i][h])
+
+                    # input to hidden layer
+                    for i in range(INPUT_LAYER_SIZE):
+                        for h in range(HIDDEN_LAYER_DISPLAY_SIZE):
+                            self.draw_weight( \
+                                input_x,  input_y+i*25, \
+                                hidden_x, hidden_y+h*25, \
+                                bot.nn.W1[i][h])
                             
-                    # # hidden to output
-                    # for h in range(HIDDEN_LAYER_SIZE):
-                    #     for o in range(OUTPUT_LAYER_SIZE):
-                    #         self.draw_weight( \
-                    #             hidden_x, hidden_y+h*25, \
-                    #             output_x, output_y+o*60, \
-                    #             bot.nn.W2[h][o])
+                    # hidden to output
+                    for h in range(HIDDEN_LAYER_DISPLAY_SIZE):
+                        for o in range(OUTPUT_LAYER_SIZE):
+                            self.draw_weight( \
+                                hidden_x, hidden_y+h*25, \
+                                output_x, output_y+o*60, \
+                                bot.nn.W2[h][o])
 
                     # DRAW NEURON OUTLINES
                     for i in range(INPUT_LAYER_SIZE):
                         self.draw_neuron_outline(input_x, input_y+i*25)
 
-                    # for h in range(HIDDEN_LAYER_SIZE):
-                    #     self.draw_neuron_outline(hidden_x, hidden_y+h*25)
+                    for h in range(HIDDEN_LAYER_DISPLAY_SIZE):
+                        self.draw_neuron_outline(hidden_x, hidden_y+h*25)
 
                     for o in range(OUTPUT_LAYER_SIZE):
                         self.draw_neuron_outline(output_x, output_y+o*60)
@@ -374,11 +408,23 @@ class PyGameView(object):
                     self.draw_neuron(input_x, input_y, i)
                     input_y += 25
 
-                # # DRAW HIDDEN LAYER NEURONS
-                # for h in bot.nn.hiddenLayer:
-                #     selected_neuron = selected_neuron or \
-                #     self.draw_neuron(hidden_x, hidden_y, h)
-                #     hidden_y += 25
+                # DRAW HIDDEN LAYER NEURONS
+                hh = 0
+                for h in bot.nn.hiddenLayer:
+                    if hh >= HIDDEN_LAYER_DISPLAY_SIZE: break
+                    hh += 1
+                    selected_neuron = selected_neuron or \
+                    self.draw_neuron(hidden_x, hidden_y, h)
+                    hidden_y += 25
+
+                # draw 3 dots to represent the rest of the hidden layer
+                # then write how many nodes there actually are in the hidden layer
+                hidden_y -= 10
+                for i in range(3):
+                    pygame.draw.circle(self.info_box_surface, [100, 100, 100], \
+                        (hidden_x, hidden_y), 2)
+                    hidden_y += 7
+                self.draw_text_in_info_box('x%d'%HIDDEN_LAYER_SIZE, hidden_x-12, hidden_y, 25)
 
                 # DRAW OUTPUT LAYER NEURONS
                 for o in [bot.left_wheel_rotation, bot.right_wheel_rotation]:
@@ -437,7 +483,7 @@ class PyGameView(object):
 
         # draw nn of selected bot
         if self.model.selected_circle != None:
-            if self.model.selected_circle.__class__.__name__ == 'bot':
+            if self.model.selected_circle.__class__.__name__ == 'Bot':
                 bot = self.model.selected_circle
 
                 # fill background (just the nn diagram part)
@@ -716,9 +762,10 @@ class Model(object):
         self.show_gen = True # show generation number
 
         self.show_controls = False # controls toggle
-        self.draw_left  = False # draw left eye field of view of selected circle
-        self.draw_right = False # draw right eye field of view of selected circle
+        self.draw_left  = True # draw left eye field of view of selected circle
+        self.draw_right = True # draw right eye field of view of selected circle
         self.selected_circle = None # bot or food selected for display in the info box
+        self.stay_selected = False # move to next blob or make it selected_circle None again
         #self.sleep_time = .005 #seconds between frames
 
         # create food and bots
@@ -726,7 +773,7 @@ class Model(object):
         for i in range(0, FOOD_NUM):
             self.foods.append(Food(self))
         for i in range(0, BOT_NUM):
-            self.bots.append(bot(self, np.random.randint(256, size=3)))
+            self.bots.append(Bot(self, np.random.randint(256, size=3)))
 
         # population progressions
         self.population = 0
@@ -743,11 +790,18 @@ class Model(object):
         for bot in self.bots:
             bot.update_outputs(self)
 
-
         # If all bots are dead, start new cycle
         if self.bots == []:
             self.create_population(NUM_PARENTS)
             self.vip_genes = []
+
+        # update selected circle
+        if self.selected_circle != None:
+            if self.selected_circle.__class__.__name__ == 'Bot':
+                if self.selected_circle not in self.bots:
+                    if self.stay_selected:
+                        self.selected_circle = self.bots[0]
+                    else: self.selected_circle = None
 
     def create_population(self, num_winners=2):
         """ 
@@ -779,7 +833,7 @@ class Model(object):
                 nn = None
                 col = np.random.randint(256, size=3)
 
-            self.bots.append(bot(self, col, nn))
+            self.bots.append(Bot(self, col, nn))
             #self.bots.append(bot(self, top_scoring[2], new_NN))
 
 class PyGameKeyboardController(object):
@@ -870,6 +924,8 @@ class PyGameKeyboardController(object):
             model.draw_left = not model.draw_left
         elif event.key == pygame.K_r:
             model.draw_right = not model.draw_right
+        elif event.key == pygame.K_a:
+            model.stay_selected = not model.stay_selected
         return True
 
 

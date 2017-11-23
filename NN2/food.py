@@ -28,8 +28,8 @@ class Food(ParentSprite):
 			self.radius += FOOD_GROWTH_RATE
 
 		else:
-			self.radius = FOOD_START_RADIUS
 			self.reproduce_asexually(model)
+			self.radius = FOOD_START_RADIUS
 
 
 	def reproduce_asexually(self, model):

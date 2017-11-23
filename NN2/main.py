@@ -240,7 +240,7 @@ class PyGameView(object):
 
         # draw vision of the selected bot
         bot = self.model.selected_circle
-        if bot != None and bot.__class__.__name__ == 'bot':
+        if bot != None and bot.__class__.__name__ == 'Bot':
             if model.draw_left:
                 self.draw_visual_field(bot, 'left_eye')
             if model.draw_right:
@@ -300,7 +300,7 @@ class PyGameView(object):
                 self.first_bot_drawing = True
                 self.first_food_drawing = True
 
-            if self.model.selected_circle.__class__.__name__ == 'bot':
+            if self.model.selected_circle.__class__.__name__ == 'Bot':
                 bot = self.model.selected_circle
 
                 # fill background

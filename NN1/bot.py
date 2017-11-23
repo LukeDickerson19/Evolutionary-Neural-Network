@@ -7,7 +7,7 @@ import math
 import pygame
 
 
-class bot(ParentSprite):
+class Bot(ParentSprite):
     """ 
     Represents a bot in the natural/articifial evolution simulation
     """
@@ -20,7 +20,7 @@ class bot(ParentSprite):
         Args:
             nn (class): can pass in the neural net from another bot
         """
-        super(bot, self).__init__() # values are not needed
+        super(Bot, self).__init__() # values are not needed
         self.radius = BOT_BODY_RADIUS
 
         if parent_angle != None: self.angle = parent_angle
@@ -398,7 +398,11 @@ class bot(ParentSprite):
                 g += (a['color'][1] / 255.0) * (arc_angle / total_angle)
                 b += (a['color'][2] / 255.0) * (arc_angle / total_angle)
 
-        self.visual_input[eye] = [r,g,b]            
+        self.visual_input[eye] = [self.eye_sigmoid(r), self.eye_sigmoid(g), self.eye_sigmoid(b)]
+    def eye_sigmoid(self, x):
+        # this is used to increase brain activity when a bot sees something
+        A = 7 # this constant controls how much the signal (x, values 0 to 1) is amplified by the sigmoid
+        return 2*(1/(1+np.exp(-A*x)))-1.0
     def left_side(self, A, B, C):
     
         # determine if point C is on the left side
@@ -459,7 +463,7 @@ class bot(ParentSprite):
         food_smell = 0.0
         for food in model.foods:
             food_smell += \
-            (-2 / (1 + np.exp(-(2 * self.get_dist(food)) / (3*BOT_BODY_RADIUS))) + 2)
+            (-4 / (1 + np.exp(-(2 * self.get_dist(food)) / (3*BOT_BODY_RADIUS))) + 4)
         self.food_smell = 2 / (1 + np.exp(-4*food_smell)) - 1 # sqash it
     def print_smell(self):
         
@@ -565,7 +569,7 @@ class bot(ParentSprite):
             
             if lwr < rwr:
                 radius_of_movement_from_inner_wheel = -al / ((rwr/lwr) - 1)
-            elif lwr > rwr:
+            else:#if lwr > rwr:
                 radius_of_movement_from_inner_wheel = al / ((lwr/rwr) - 1)
 
             #print "radius_of_movement_from_inner_wheel:%f" % radius_of_movement_from_inner_wheel
@@ -625,8 +629,9 @@ class bot(ParentSprite):
             if new_y < 0: new_y = SCREEN_SIZE[1]
 
             # update new transform
-            self.center_x, self.center_y = new_x, new_y
-            self.int_center = int(self.center_x), int(self.center_y)
+            if not math.isnan(new_x) and not math.isnan(new_y):
+                self.center_x, self.center_y = new_x, new_y
+                self.int_center = int(self.center_x), int(self.center_y)
             self.angle += angle_of_movement
             self.out_of_bounds()
 
@@ -734,7 +739,7 @@ class bot(ParentSprite):
             if new_c < 0:   new_c = 0        
             new_col[i] = int(new_c)
 
-        model.bots.append(bot(model, new_col, (1, self.nn, new_col), self.center_x, self.center_y))
+        model.bots.append(Bot(model, new_col, (1, self.nn, new_col), self.center_x, self.center_y))
 
     def score(self):
         """
