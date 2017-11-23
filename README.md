@@ -3,7 +3,10 @@
 ## Synopsis
 
 This program runs a simulation of a robots that use MLP neural networks (NN)
-to survive and reproduce in the simulation.
+to learn to survive in the simulation.
+
+<img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/trained_bots.mp4" width="600" height="400">
+
 
 ## Motivation
 
