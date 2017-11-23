@@ -1,4 +1,4 @@
- Evolutionary Neural Network
+## Evolutionary Neural Networks
 
 # Synopsis
 
@@ -16,7 +16,7 @@ form of NN training.
 
 Each robot has its own Multi-Layer Perceptron NN:
 
-![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/videos_and_images/nn_display.png?raw=true "MLP Neural Network")
+![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/images/nn_display.png?raw=true "MLP Neural Network")
 
 The inputs of their NNs are:
     Energy: how much energy this bot has
