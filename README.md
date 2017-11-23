@@ -41,8 +41,7 @@ This gives their NNs 10 input neurons and 2 output neurons.
 Their NNs have one hidden layer of 88 neurons
 
 <img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/vision_display.png" width="300" height="300">
-(visual field of one of a bot's eye's)
-
+(visual field of one of a bot's eye's) <br />
 
 When a robot eats food, it creates another child robot
 next to it. Its child will inherate its parent's color and
