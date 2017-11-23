@@ -1,11 +1,11 @@
-## Evolutionary Neural Networks
+# Evolutionary Neural Networks
 
-# Synopsis
+## Synopsis
 
 This program runs a simulation of a robots that use MLP neural networks (NN)
 to survive and reproduce in the simulation.
 
-# Motivation
+## Motivation
 
 The goal of this project was to try to train NNs to correctly
 control robots to move around in their simulated environment to
@@ -16,7 +16,7 @@ form of NN training.
 
 Each robot has its own Multi-Layer Perceptron NN:
 
-![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/images/nn_display.png?raw=true "MLP Neural Network")
+![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/nn_display.png?raw=true "MLP Neural Network")
 
 The inputs of their NNs are:
     Energy: how much energy this bot has
@@ -50,7 +50,7 @@ location, in order to maintain a constant number of food
 
 Initially the weights of their brain are set to random 
 
-# Installation
+## Installation
 
 You will need pygame downloaded to run this program:
 https://www.pygame.org/news
