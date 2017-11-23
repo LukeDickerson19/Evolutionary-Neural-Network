@@ -11,13 +11,12 @@ The goal of this project was to try to train NNs to correctly
 control robots to move around in their simulated environment to
 eat food and reproduce, through the random mutations in
 reproduction, instead of with supervized learning or another
-form of NN training. The simulation looks like this:
-
-
+form of NN training.
 
 
 Each robot has its own Multi-Layer Perceptron NN:
 
+![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/videos_and_images/nn_display.png?raw=true "MLP Neural Network")
 
 The inputs of their NNs are:
     Energy: how much energy this bot has
