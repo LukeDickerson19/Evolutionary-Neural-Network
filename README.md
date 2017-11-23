@@ -18,7 +18,7 @@ reproduction, instead of with supervized learning or another
 form of NN training. <br />
 Each robot has its own Multi-Layer Perceptron NN:
 
-![MLP NN](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/MLP_NN_display.gif)
+![MLP NN](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/MLP_NN_display.gif width="400" height="400")
 
 <img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/nn_display.png" width="400" height="400">
 
