@@ -1,4 +1,4 @@
-# Evolutionary Neural Network
+ Evolutionary Neural Network
 
 # Synopsis
 
@@ -16,7 +16,7 @@ form of NN training.
 
 Each robot has its own Multi-Layer Perceptron NN:
 
-![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/videos_and_images/nn_display.png?raw=true "MLP Neural Network")
+![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/videos_and_images/nn_display.png?raw=true "MLP Neural Network")
 
 The inputs of their NNs are:
     Energy: how much energy this bot has
@@ -52,7 +52,9 @@ Initially the weights of their brain are set to random
 
 # Installation
 
-You will need pygame downloaded to run this program: https://www.pygame.org/news 
+You will need pygame downloaded to run this program:
+https://www.pygame.org/news
+
 Once pygame is downloaded and this repository is cloned,
 run the main.py file in the NN1 directory.
 
