@@ -13,13 +13,13 @@ eat food and reproduce, through the random mutations in
 reproduction, instead of with supervized learning or another
 form of NN training.
 
-![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/simulation_display.png?raw=true "Simulation")
+![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/simulation_display.png?raw=true "Simulation"){:height="36px" width="36px"}.
 
 Each robot has its own Multi-Layer Perceptron NN:
 
 ![results](https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/nn_display.png?raw=true "MLP Neural Network")
 
-The inputs of their NNs are:
+The inputs of their NNs are: <br />
     Energy: how much energy this bot has <br />
     Left Eye RGB: how much red, green and blue the bot's left eye sees <br />
     Right Eye RGB: how much red, green and blue the bot's right eye sees <br />
