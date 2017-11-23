@@ -20,17 +20,17 @@ Each robot has its own Multi-Layer Perceptron NN:
 <img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/nn_display.png" width="400" height="400">
 
 The inputs of their NNs are: <br />
-    Energy: how much energy this bot has <br />
-    Left Eye RGB: how much red, green and blue the bot's left eye sees <br />
-    Right Eye RGB: how much red, green and blue the bot's right eye sees <br />
-    Sound: how much noise this bot hears, <br />
+..*Energy: how much energy this bot has <br />
+..*Left Eye RGB: how much red, green and blue the bot's left eye sees <br />
+..*Right Eye RGB: how much red, green and blue the bot's right eye sees <br />
+..*Sound: how much noise this bot hears, <br />
            the faster a bot move the more noise it makes, <br />
            the closer a bot is to other moving bots the louder <br />
            it hears that noise <br />
-    Food Smell: how much food this bot smells, <br />
-                the closer it is to food the greater this input is <br />
-    Bot Smell: how much other bots this bot smells, <br />
-                the closer it is to other bots the greater this input is <br />
+..*Food Smell: how much food this bot smells, <br />
+               the closer it is to food the greater this input is <br />
+..*Bot Smell: how much other bots this bot smells, <br />
+              the closer it is to other bots the greater this input is <br />
 
 The outputs of the NNs are:
     Left and right wheel rotation. 
