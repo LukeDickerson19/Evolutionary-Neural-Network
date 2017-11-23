@@ -43,18 +43,17 @@ Their NNs have one hidden layer of 88 neurons
 <img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/vision_display.png" width="300" height="300">
 (visual field of one of a bot's eye's)
 
+
 When a robot eats food, it creates another child robot
 next to it. Its child will inherate its parent's color and
 neural network weights with slight mutations. At the time of birth of
 the child robot, whichever robot has currently eaten 
 the least amount of food will be killed to maintain a constant
 number of robots at a time. So the race is on to get food
-as quickly as possible!
+as quickly as possible! Each time a food is eaten, another food
+is created at a random location, in order to maintain a constant
+number of food.
 
-Each time a food is eaten, another food is created at a random
-location, in order to maintain a constant number of food
-
-Initially the weights of their brain are set to random 
 
 ## Installation
 
