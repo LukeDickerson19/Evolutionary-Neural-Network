@@ -12,7 +12,7 @@ MAX_ENERGY = 1000.0
 ENERGY_LOSS_CONSTANT = .1
 
 # additional BOT constants
-BOT_BODY_RADIUS = 15
+BOT_BODY_RADIUS = 16
 WHEEL_RADIUS = 1.50
 AXLE_LENGTH = 1.0 * (2 * BOT_BODY_RADIUS)
 MAX_WHEEL_ROTATION = np.pi # max rotation a wheel can perform each time step
@@ -21,9 +21,10 @@ EYE_PERIPHERAL_WIDTH = np.pi / 3 # angle from center of eye's vision to edge of 
 MAX_VISABLE_DISTANCE = 12 * BOT_BODY_RADIUS # how far the eye can see
 VISION_OPAQUENESS = 25 # how opaque the view draws the arcs of the vision (0 to 255)
 NOISE_AMPLIFIER = 20 # used to amplify how much noise a bot makes from its movement
+BOT_BRIGHTNESS = 100 # minimum brightness of an r,g,b value of a bot's color
 
 # additional food constants
-FOOD_RADIUS = 10
+FOOD_RADIUS = 8
 FOOD_COLOR = pygame.Color('red')
 
 # neural network constants

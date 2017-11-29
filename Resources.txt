@@ -22,3 +22,27 @@ RESOURCES:
 	5)
         pygame documentation - 2D graphics library
 	https://www.pygame.org/docs/ref/draw.html
+
+
+
+Changes:
+
+Sum it easy/digestably for 30sec viewer
+	what i want to get across:
+		
+		basic concept of a neural network
+			use diagram
+
+		what the inputs and outputs of the blob are:
+			show visual input in real time
+
+		the rules by which the bots and food reproduce and die
+
+you have 2 monitors
+	one playing video of trained bots
+	one playing video of untrained bots
+	
+
+try to get it all in 1 package
+
+show up at 1 if possible

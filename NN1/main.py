@@ -58,30 +58,7 @@ import os
 
             make video with you speaking over it:
 
-            "
-            this is the evolutionary neural network simulation i made
 
-            the goal was to try to train neural networks to correctly
-            control robots to move around in their environment to
-            eat food and reproduce, through the random mutations in
-            reproduction, instead of with supervized learning or another
-            form of neural network training.
-
-            The evolutionary selection is done when a robot intersects
-            with a food particle.
-
-            when a robot eats food (smaller red circles), it creates another child robot right
-            next to it. Its child will inherate its parent's color and
-            brain weights with slight mutations. At the time of birth of
-            the child robot, whichever robot currently has eaten 
-            the least amount of food will be killed to maintain a constant
-            number of robots at a time. So the race is on to get food
-            as quickly as possible.
-
-            Each time a food is eaten, another food is created at a random
-            location, in order to maintain a constant number of food
-
-            "
 
             Resource 1: inspiration
             Resource 2: Code was built on top of
@@ -259,28 +236,12 @@ class PyGameView(object):
 
         # draw food
         for food in self.model.foods:
-            pygame.draw.circle(
-                self.simulation_surface,
-                food.color,
-                (food.center_x, food.center_y),
-                food.radius
-                )                    
+            self.draw_food(food)
 
         # draw bots
         for bot in self.model.bots:
             if bot.alive:
-                pygame.draw.circle(
-                    self.simulation_surface, bot.color,
-                    bot.int_center, int(bot.radius))
-                # pygame.draw.circle(
-                #     self.simulation_surface, pygame.Color('green'),
-                #     bot.p_left, 2)
-                # pygame.draw.circle(
-                #     self.simulation_surface, pygame.Color('red'), 
-                #     bot.p_right, 2)
-                # pygame.draw.circle( # left eye
-                #     self.simulation_surface, pygame.Color('white'),
-                #     bot.left_eye_pos, 2)
+                self.draw_bot(bot)
 
 
         # draw vision of the selected bot
@@ -300,6 +261,32 @@ class PyGameView(object):
                 self.mouse_pos, self.mouse_radius, 1)
 
         pygame.display.update()
+
+    def draw_food(self, food):
+        pygame.draw.circle(
+            self.simulation_surface,
+            food.color,
+            (food.center_x, food.center_y),
+            food.radius
+        )
+    def draw_bot(self, bot):
+
+        # draw body
+        pygame.draw.circle(
+            self.simulation_surface, bot.color,
+            bot.int_center, int(bot.radius))
+
+        # # draw tail DRAWING A TAIL WILL MESS UP THE VISUAL INPUT
+        # x, y, r, theta = bot.x, bot.y, bot.radius, bot.angle
+        # tail_width = np.pi / 3
+        # tail_tip = [x - 1.750 * r * np.cos(theta), y - 1.40 * r * np.sin(theta)]
+        # left_cheek = [ \
+        #     x - 0.90 * r * np.cos(theta + tail_width), \
+        #     y - 0.90 * r * np.sin(theta + tail_width)]
+        # right_cheek = [ \
+        #     x - 0.90 * r * np.cos(theta - tail_width), \
+        #     y - 0.90 * r * np.sin(theta - tail_width)]
+        # pygame.draw.polygon(surface, color, [left_cheek, tail_tip, right_cheek])
 
     def draw_visual_field(self, bot, eye):
         
@@ -773,7 +760,8 @@ class Model(object):
         for i in range(0, FOOD_NUM):
             self.foods.append(Food(self))
         for i in range(0, BOT_NUM):
-            self.bots.append(Bot(self, np.random.randint(256, size=3)))
+            color = np.insert(np.random.randint(BOT_BRIGHTNESS, 256, size=2),0,0)
+            self.bots.append(Bot(self, color))
 
         # population progressions
         self.population = 0
@@ -831,7 +819,7 @@ class Model(object):
 
             else:
                 nn = None
-                col = np.random.randint(256, size=3)
+                col = np.insert(np.random.randint(BOT_BRIGHTNESS, 256, size=2),0,0)
 
             self.bots.append(Bot(self, col, nn))
             #self.bots.append(bot(self, top_scoring[2], new_NN))

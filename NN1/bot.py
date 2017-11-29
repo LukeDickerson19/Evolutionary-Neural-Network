@@ -730,13 +730,13 @@ class Bot(ParentSprite):
     def reproduce_asexually(self, model):
 
         new_col = [0] * 3
-        for i in range(3):
+        for i in range(1,3):
             change_in_rgb = np.random.normal(0, 10)
             if change_in_rgb > 50:  change_in_rgb = 50
             if change_in_rgb < -50: change_in_rgb = -50
             new_c = self.color[i] + change_in_rgb
             if new_c > 255: new_c = 255
-            if new_c < 0:   new_c = 0        
+            if new_c < BOT_BRIGHTNESS: new_c = BOT_BRIGHTNESS
             new_col[i] = int(new_c)
 
         model.bots.append(Bot(model, new_col, (1, self.nn, new_col), self.center_x, self.center_y))
