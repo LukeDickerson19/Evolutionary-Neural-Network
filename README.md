@@ -16,7 +16,7 @@ eat food and reproduce, through the random mutations in
 reproduction, instead of with supervized learning or another
 form of NN training. The video above shows the bots actively 
 stearing towards food on their own accord, after a day of
-running the simulation <br />
+running the simulation. <br />
 Each robot has its own Multi-Layer Perceptron NN:
 
 <img src="https://github.com/PopeyedLocket/Evolutionary-Neural-Network/blob/master/videos_and_images/MLP_NN_display.gif" width="400" height="400">
