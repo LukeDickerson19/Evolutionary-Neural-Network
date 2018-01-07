@@ -13,7 +13,7 @@ to learn to survive in the simulation.
 The goal of this project was to try to train NNs to correctly
 control robots to move around in their simulated environment to
 eat food and reproduce, through the random mutations in
-reproduction, instead of with supervized learning or another
+reproduction, instead of with supervised learning or another
 form of NN training. The video above shows the bots actively 
 stearing towards food on their own accord, after a day of
 running the simulation. <br />
