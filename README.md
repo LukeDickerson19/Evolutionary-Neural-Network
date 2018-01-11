@@ -53,7 +53,8 @@ the least amount of food will be killed to maintain a constant
 number of robots at a time. So the race is on to get food
 as quickly as possible! Each time a food is eaten, another food
 is created at a random location, in order to maintain a constant
-number of food.
+number of food. Initially the robots just move around randomly,
+but over time they evolve to seek out food.
 
 
 ## Installation
